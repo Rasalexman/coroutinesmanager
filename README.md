@@ -13,22 +13,24 @@ class MainActivity(
     
     fun tryCatch() = launchOnUITryCatch(tryBlock = {
         // do some work on ui
+        val result = asyncWorker.awaitSomeHardWorkToComplete()
     }, catchBlock = {
         // catch every exception
     })
     
     fun tryFinally() = launchOnUITryFinally(tryBlock = {
-        
+        // try some action that maybe produce an exceptions
     }, finallyBlock = {
         // do work when coroutine is done
     })
     
     fun tryCatchFinally() = launchOnUITryCatchFinally(tryBlock = {
-        
+        val resultForAwait = asyncWorker.createDeferrerForAwait()
+        val finalResult: String = resultForAwait.await()    
     }, catchBlock = {
-        
+        // error here
     }, finallyBlock = {
-        
+        // final action here
     })
     
     fun doOnUiOnly() = launchOnUI { 
@@ -48,6 +50,10 @@ class AsyncWorker(
             throw RuntimeException("THERE IS AN ERROR")
         // final result
         "OPERATION COMPLETE"
+    }
+    
+    suspend fun <T> createDeferrerForAwait(): Deferred<T> = async {
+        "SOME WORK HERE"
     }
 }
 ```
