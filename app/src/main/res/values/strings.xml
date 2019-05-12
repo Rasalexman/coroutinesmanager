@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">KotlinCoroutinesManager</string>
+
+    <string name="repeate_title">Repeate</string>
+    <string name="start_title">Start</string>
+    <string name="stop_title">Stop</string>
+    <string name="text_to_start_title">Click to start coroutines scope</string>
+    <string name="text_to_error_title">There is some error with coroutines</string>
+    <string name="caceled_title">Job was canceled</string>
+
+</resources>
