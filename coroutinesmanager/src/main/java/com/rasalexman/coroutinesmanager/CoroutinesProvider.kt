@@ -30,4 +30,9 @@ object CoroutinesProvider {
      * Common Thread provider
      */
     val COMMON = kotlinx.coroutines.Dispatchers.Default
+
+    /**
+     * IO Thread provider
+     */
+    val IO = kotlinx.coroutines.Dispatchers.IO
 }

@@ -60,5 +60,8 @@ interface ICoroutinesManager {
      */
     fun cancelAllCoroutines()
 
+    /**
+     * Is All coroutines on UI complete
+     */
     fun isCompleted(): Boolean
 }

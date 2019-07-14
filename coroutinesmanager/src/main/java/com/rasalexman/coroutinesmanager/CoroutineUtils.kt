@@ -21,6 +21,9 @@ package com.rasalexman.coroutinesmanager
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 
+/**
+ * Handler for cancelation
+ */
 typealias CancelationHandler = () -> Unit
 
 /**
