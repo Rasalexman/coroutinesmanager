@@ -1,8 +1,64 @@
 # Kotlin Coroutines Manager
 [ ![Download](https://api.bintray.com/packages/sphc/KotlinCoroutinesManager/coroutinesmanager/images/download.svg?version=1.0.0) ](https://bintray.com/sphc/KotlinCoroutinesManager/coroutinesmanager/1.0.0/link)[![Kotlin 1.3.31](https://img.shields.io/badge/Kotlin-1.3.31-blue.svg)](http://kotlinlang.org)
 
-Some helpful kotlin coroutines manager classes and extensions
+Some helpful kotlin coroutines manager classes and extensions. You can turn every function into coroutine function with powerful try-catch-finally blocks
 
+```kotlin
+class MainActivity(
+    private val coroutinesManager: ICoroutinesManager = CoroutinesManager()
+) : AppCompatActivity(), ICoroutinesManager by coroutinesManager {
+
+    // Async worker may be into your DI as uses case
+    private val asyncWorker = AsyncWorker()
+    
+    fun tryCatch() = launchOnUITryCatch(tryBlock = {
+        // do some work on ui
+        val result = asyncWorker.awaitSomeHardWorkToComplete()
+    }, catchBlock = {
+        // catch every exception
+    })
+    
+    fun tryFinally() = launchOnUITryFinally(tryBlock = {
+        // try some action that maybe produce an exceptions
+    }, finallyBlock = {
+        // do work when coroutine is done
+    })
+    
+    fun tryCatchFinally() = launchOnUITryCatchFinally(tryBlock = {
+        val resultForAwait = asyncWorker.createDeferrerForAwait()
+        val finalResult: String = resultForAwait.await()    
+    }, catchBlock = {
+        // error here
+    }, finallyBlock = {
+        // final action here
+    })
+    
+    fun doOnUiOnly() = launchOnUI { 
+        // do some work on UI thread
+    }   
+}
+    
+class AsyncWorker(
+    // You can store this class as global singleton into your DI framework
+    private val asyncTaskManager: IAsyncTasksManager = AsyncTasksManager()
+) : IAsyncTasksManager by asyncTaskManager {
+
+    suspend fun awaitSomeHardWorkToComplete() = asyncAwait {
+        Thread.sleep(5000)
+        // this will goes into `catchBlock` of launched coroutine function
+        if (Random.nextInt(1, 20) % 2 == 0)
+            throw RuntimeException("THERE IS AN ERROR")
+        // final result
+        "OPERATION COMPLETE"
+    }
+    
+    suspend fun <T> createDeferrerForAwait(): Deferred<T> = async {
+        "SOME WORK HERE"
+    }
+}
+```
+
+You can use ICoroutinesManager as base implementation for your presenter in MVP or MVI architecture. Use IAsyncTasksManager as base implementation for hard work or async operations as UseCases and another tasks. 
 
 Gradle: 
 ```kotlin
