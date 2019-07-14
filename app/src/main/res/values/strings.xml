@@ -6,6 +6,7 @@
     <string name="stop_title">Stop</string>
     <string name="text_to_start_title">Click to start coroutines scope</string>
     <string name="text_to_error_title">There is some error with coroutines</string>
+    <string name="text_to_flow_title">Flow value</string>
     <string name="caceled_title">Job was canceled</string>
 
 </resources>

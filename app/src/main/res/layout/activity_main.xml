@@ -7,6 +7,22 @@
         android:layout_height="match_parent"
         tools:context=".MainActivity">
 
+
+    <TextView
+            android:id="@+id/flowTitleView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:layout_marginTop="56dp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:text="@string/text_to_flow_title"
+            android:layout_marginEnd="16dp"
+            android:layout_marginStart="16dp"
+            android:gravity="center_horizontal"/>
+
     <TextView
             android:id="@+id/titleTextView"
             android:layout_width="wrap_content"

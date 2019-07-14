@@ -3,13 +3,16 @@ package com.mincor.kotlincoroutinesmanager
 import android.annotation.SuppressLint
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
-import com.rasalexman.coroutinesmanager.AsyncTasksManager
-import com.rasalexman.coroutinesmanager.CoroutinesManager
-import com.rasalexman.coroutinesmanager.IAsyncTasksManager
-import com.rasalexman.coroutinesmanager.ICoroutinesManager
+import com.rasalexman.coroutinesmanager.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlin.random.Random
 
+@ExperimentalCoroutinesApi
 class MainActivity(
     private val coroutinesManager: ICoroutinesManager = CoroutinesManager()
 ) : AppCompatActivity(), ICoroutinesManager by coroutinesManager {
@@ -32,7 +35,51 @@ class MainActivity(
         }
     }
 
+    fun tryCatch() = launchOnUITryCatch(tryBlock = {
+        // do some work on ui
+    }, catchBlock = {
+        // catch every exception
+    })
+
+    fun tryFinally() = launchOnUITryFinally(tryBlock = {
+
+    }, finallyBlock = {
+        // do work when coroutine is done
+    })
+
+    fun tryCatchFinally() = launchOnUITryCatchFinally(tryBlock = {
+
+    }, catchBlock = {
+
+    }, finallyBlock = {
+
+    })
+
+    override fun onResume() {
+        super.onResume()
+        //doOnUiOnly()
+    }
+
+    @UseExperimental(InternalCoroutinesApi::class)
+    fun doOnUiOnly() = launchOnUI {
+
+        flowTitleView.text = getString(R.string.start_title)
+
+        flow {
+            for (i in 0 until 1000) {
+                kotlinx.coroutines.delay(100)
+                emit(i)
+            }
+        }
+            .flowOn(CoroutinesProvider.IO)
+            .collect {
+                flowTitleView.text = "Finish work with value $it"
+            }
+    }
+
+
     private fun onCancelAllCoroutinesListener() {
+        coroutinesManager.cancelAllCoroutines()
         asyncWorker.cancelAllAsync()
     }
 
