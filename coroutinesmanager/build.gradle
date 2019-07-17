@@ -11,8 +11,8 @@ android {
     defaultConfig {
         minSdkVersion 19
         targetSdkVersion 29
-        versionCode 10001
-        versionName "1.0.1"
+        versionCode managerCorotinesCode
+        versionName managerCorotinesVersion
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
