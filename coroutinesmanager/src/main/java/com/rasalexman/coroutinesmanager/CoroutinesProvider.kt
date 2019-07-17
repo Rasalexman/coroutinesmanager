@@ -18,6 +18,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package com.rasalexman.coroutinesmanager
 
+import kotlinx.coroutines.SupervisorJob
+
 /**
  * Storage of coroutine providers
  */
@@ -35,4 +37,9 @@ object CoroutinesProvider {
      * IO Thread provider
      */
     val IO = kotlinx.coroutines.Dispatchers.IO
+
+    /**
+     * Supervisor job
+     */
+    val supervisorJob by lazy { SupervisorJob() }
 }

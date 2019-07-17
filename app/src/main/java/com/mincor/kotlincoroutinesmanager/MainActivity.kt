@@ -6,13 +6,12 @@ import androidx.appcompat.app.AppCompatActivity
 import com.rasalexman.coroutinesmanager.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.InternalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.random.Random
 
-@ExperimentalCoroutinesApi
 class MainActivity(
     private val coroutinesManager: ICoroutinesManager = CoroutinesManager()
 ) : AppCompatActivity(), ICoroutinesManager by coroutinesManager {
@@ -60,14 +59,12 @@ class MainActivity(
         //doOnUiOnly()
     }
 
-    @UseExperimental(InternalCoroutinesApi::class)
+    @UseExperimental(ExperimentalCoroutinesApi::class)
     fun doOnUiOnly() = launchOnUI {
-
         flowTitleView.text = getString(R.string.start_title)
-
         flow {
             for (i in 0 until 1000) {
-                kotlinx.coroutines.delay(100)
+                delay(100)
                 emit(i)
             }
         }
@@ -79,13 +76,16 @@ class MainActivity(
 
 
     private fun onCancelAllCoroutinesListener() {
-        coroutinesManager.cancelAllCoroutines()
+        coroutinesManager.cancelUICoroutines()
         asyncWorker.cancelAllAsync()
     }
 
     @SuppressLint("SetTextI18n")
     private fun onRepeateButtonClickListener() = launchOnUITryCatchFinally(
         tryBlock = {
+            println("----> START <------")
+            println("----> UI 'TRY' BLOCK")
+
             titleTextView.text = "Start doing hard work"
             repeateButton.text = getString(R.string.stop_title)
             // add cancelation function on this worker
@@ -95,12 +95,12 @@ class MainActivity(
             // Show result
             titleTextView.text = result
         }, catchBlock = {
-            println("THERE IS CATCH BLOCK")
+            println("----> UI 'CATCH' BLOCK")
             repeateButton.text = getString(R.string.repeate_title)
             titleTextView.text = it.message
         }, finallyBlock = {
             repeateButton.text = getString(R.string.start_title)
-            println("THERE IS FINALLY BLOCK")
+            println("----> UI 'FINALLY' BLOCK")
         })
 
     private fun onAllJobsWasCanceledHandler() {
@@ -117,12 +117,20 @@ class AsyncWorker(
     private val asyncTaskManager: IAsyncTasksManager = AsyncTasksManager()
 ) : IAsyncTasksManager by asyncTaskManager {
 
-    suspend fun awaitSomeHardWorkToComplete() = asyncAwait {
-        Thread.sleep(5000)
-        if (Random.nextInt(1, 20) % 2 == 0)
-            throw RuntimeException("THERE IS AN ERROR")
+    suspend fun awaitSomeHardWorkToComplete() = doAsyncAwaitTryCatch(
+        tryBlock = {
+            println("----> ASYNC 'TRY' BLOCK")
 
-        "OPERATION COMPLETE"
-    }
+            delay(3000L)
+            if (Random.nextInt(1, 20) % 2 == 0)
+                throw RuntimeException("THERE IS AN ERROR")
+
+            "OPERATION COMPLETE"
+        },
+        catchBlock = {
+            println("----> ASYNC 'CATCH' BLOCK")
+            throw it
+        }
+    )
 
 }

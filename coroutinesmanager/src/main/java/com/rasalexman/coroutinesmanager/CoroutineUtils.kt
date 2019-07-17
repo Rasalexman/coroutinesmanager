@@ -20,11 +20,16 @@ package com.rasalexman.coroutinesmanager
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Handler for cancelation
  */
 typealias CancelationHandler = () -> Unit
+
+typealias SuspendTry<T> = suspend CoroutineScope.() -> T
+typealias SuspendCatch<T> = suspend CoroutineScope.(Throwable) -> T
+typealias SuspendFinal<T> = suspend CoroutineScope.(Throwable?) -> T
 
 /**
  * tryCatch coroutines function
@@ -33,15 +38,15 @@ typealias CancelationHandler = () -> Unit
  * @param catchBlock
  * @param handleCancellationExceptionManually
  */
-suspend fun CoroutineScope.tryCatch(
-        tryBlock: suspend CoroutineScope.() -> Unit,
-        catchBlock: suspend CoroutineScope.(Throwable) -> Unit,
-        handleCancellationExceptionManually: Boolean = false) {
-    try {
+suspend fun <T> CoroutineScope.tryCatch(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    handleCancellationExceptionManually: Boolean = false
+): T {
+    return try {
         tryBlock()
     } catch (e: Throwable) {
-        if (e !is CancellationException ||
-                handleCancellationExceptionManually) {
+        if (e !is CancellationException || handleCancellationExceptionManually) {
             catchBlock(e)
         } else {
             throw e
@@ -57,30 +62,25 @@ suspend fun CoroutineScope.tryCatch(
  * @param finallyBlock
  * @param handleCancellationExceptionManually - can we handle cancellation manually
  */
-suspend fun CoroutineScope.tryCatchFinally(
-        tryBlock: suspend CoroutineScope.() -> Unit,
-        catchBlock: suspend CoroutineScope.(Throwable) -> Unit,
-        finallyBlock: suspend CoroutineScope.() -> Unit,
-        handleCancellationExceptionManually: Boolean = false) {
+suspend fun <T> CoroutineScope.tryCatchFinally(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    finallyBlock: SuspendFinal<T>,
+    handleCancellationExceptionManually: Boolean = false
+): T {
 
     var caughtThrowable: Throwable? = null
-
-    try {
+    return try {
         tryBlock()
     } catch (e: Throwable) {
-        if (e !is CancellationException ||
-                handleCancellationExceptionManually) {
+        caughtThrowable = e
+        if (e !is CancellationException || handleCancellationExceptionManually) {
             catchBlock(e)
         } else {
-            caughtThrowable = e
+            throw e
         }
     } finally {
-        if (caughtThrowable is CancellationException &&
-                !handleCancellationExceptionManually) {
-            throw caughtThrowable
-        } else {
-            finallyBlock()
-        }
+        finallyBlock(caughtThrowable)
     }
 }
 
@@ -89,27 +89,43 @@ suspend fun CoroutineScope.tryCatchFinally(
  *
  * @param tryBlock
  * @param finallyBlock
- * @param suppressCancellationException
  */
-suspend fun CoroutineScope.tryFinally(
-        tryBlock: suspend CoroutineScope.() -> Unit,
-        finallyBlock: suspend CoroutineScope.() -> Unit,
-        suppressCancellationException: Boolean = false) {
-
+suspend fun <T> CoroutineScope.tryFinally(
+    tryBlock: SuspendTry<T>,
+    finallyBlock: SuspendFinal<T>
+): T {
     var caughtThrowable: Throwable? = null
-
-    try {
+    return try {
         tryBlock()
-    } catch (e: CancellationException) {
-        if (!suppressCancellationException) {
-            caughtThrowable = e
-        }
+    } catch (e: Throwable) {
+        caughtThrowable = e
+        throw e
     } finally {
-        if (caughtThrowable is CancellationException &&
-                !suppressCancellationException) {
-            throw caughtThrowable
+        finallyBlock(caughtThrowable)
+    }
+}
+
+/**
+ * tryCatch with switching coroutine context function
+ *
+ * @param tryBlock
+ * @param catchBlock
+ * @param tryContext
+ * @param handleCancellationExceptionManually
+ */
+suspend fun <T> CoroutineScope.tryCatchWithContext(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    tryContext: CoroutineContext = this.coroutineContext,
+    handleCancellationExceptionManually: Boolean = false
+): T {
+    return try {
+        kotlinx.coroutines.withContext(tryContext, tryBlock)
+    } catch (e: Throwable) {
+        if (e !is CancellationException || handleCancellationExceptionManually) {
+            catchBlock(e)
         } else {
-            finallyBlock()
+            throw e
         }
     }
 }

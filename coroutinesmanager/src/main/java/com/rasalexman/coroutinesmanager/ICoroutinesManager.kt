@@ -19,49 +19,84 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 package com.rasalexman.coroutinesmanager
 
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
+import kotlin.coroutines.CoroutineContext
 
 /**
  * ICoroutinesManager
  */
-interface ICoroutinesManager {
+interface ICoroutinesManager : CoroutineScope {
+    /**
+     * Working job
+     *
+     * You better to override this val in implementing classes,
+     * because when you create a new coroutine you will always
+     * work with providing single job that store all of your coroutines
+     * no matter if you work on UI or COMMON
+     */
+    val job: Job
+        get() = CoroutinesProvider.supervisorJob
 
     /**
-     * Launch some suspend function on UI thread
+     * Coroutine Context
+     * launch single coroutine job on main thread
      */
-    fun launchOnUI(block: suspend CoroutineScope.() -> Unit)
+    override val coroutineContext: CoroutineContext
+        get() = CoroutinesProvider.UI + job
+}
 
-    /**
-     * Launch some suspend function on UI thread with try catch block
-     */
-    fun launchOnUITryCatch(
-            tryBlock: suspend CoroutineScope.() -> Unit,
-            catchBlock: suspend CoroutineScope.(Throwable) -> Unit,
-            handleCancellationExceptionManually: Boolean = false)
+/**
+ * Launch some suspend function on UI thread
+ */
+fun ICoroutinesManager.launchOnUI(block: SuspendTry<Unit>) {
+    launch(coroutineContext) { block() }.also { job -> job.invokeOnCompletion { job.cancel() } }
+}
 
-    /**
-     * Launch some suspend function on UI thread with try catch finally block
-     */
-    fun launchOnUITryCatchFinally(
-            tryBlock: suspend CoroutineScope.() -> Unit,
-            catchBlock: suspend CoroutineScope.(Throwable) -> Unit,
-            finallyBlock: suspend CoroutineScope.() -> Unit,
-            handleCancellationExceptionManually: Boolean = false)
+/**
+ * Launch some suspend function on UI thread with try catch block
+ */
+fun ICoroutinesManager.launchOnUITryCatch(
+    tryBlock: SuspendTry<Unit>,
+    catchBlock: SuspendCatch<Unit>,
+    handleCancellationExceptionManually: Boolean = false
+) = launchOnUI {
+    tryCatch(tryBlock, catchBlock, handleCancellationExceptionManually)
+}
 
-    /**
-     * Launch some suspend function on UI thread with try finally block
-     */
-    fun launchOnUITryFinally(
-            tryBlock: suspend CoroutineScope.() -> Unit,
-            finallyBlock: suspend CoroutineScope.() -> Unit,
-            suppressCancellationException: Boolean = false)
+/**
+ * Launch some suspend function on UI thread with try catch finally block
+ */
+fun ICoroutinesManager.launchOnUITryCatchFinally(
+    tryBlock: SuspendTry<Unit>,
+    catchBlock: SuspendCatch<Unit>,
+    finallyBlock: SuspendFinal<Unit>,
+    handleCancellationExceptionManually: Boolean = false
+) = launchOnUI {
+    tryCatchFinally(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually)
+}
 
-    /**
-     * Cancel all working coroutines
-     */
-    fun cancelAllCoroutines()
+/**
+ * Launch some suspend function on UI thread with try finally block
+ */
+fun ICoroutinesManager.launchOnUITryFinally(
+    tryBlock: SuspendTry<Unit>,
+    finallyBlock: SuspendFinal<Unit>
+) = launchOnUI {
+    tryFinally(tryBlock, finallyBlock)
+}
 
-    /**
-     * Is All coroutines on UI complete
-     */
-    fun isCompleted(): Boolean
+/**
+ * Cancel all working coroutines
+ */
+fun ICoroutinesManager.cancelUICoroutines() {
+    coroutineContext.cancelChildren()
+}
+
+/**
+ * Is All coroutines on UI complete
+ */
+fun ICoroutinesManager.isCompleted(): Boolean {
+    return !this.job.children.any()
 }

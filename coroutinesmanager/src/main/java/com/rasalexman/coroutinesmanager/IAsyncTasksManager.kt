@@ -18,55 +18,223 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package com.rasalexman.coroutinesmanager
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.*
+import kotlin.coroutines.CoroutineContext
 
 /**
  * IAsyncTasksManager
  */
-interface IAsyncTasksManager {
+interface IAsyncTasksManager : CoroutineScope {
+    /**
+     * Async Job
+     * You better to override this val in implementing classes,
+     * because when you create a new coroutine you will always
+     * work with providing single job that store all of your coroutines
+     * no matter if you work on UI or COMMON
+     */
+    val job: Job
+        get() = CoroutinesProvider.supervisorJob
 
     /**
-     * Call the async block
+     * Cancelation handlers local store
      */
-    suspend fun <T> async(block: suspend CoroutineScope.() -> T): Deferred<T>
+    val cancelationHandlers: MutableSet<CancelationHandler>
 
     /**
-     * Call async block and await for it's result
+     * CoroutineContext to use in this manager. It's async
      */
-    suspend fun <T> asyncAwait(block: suspend CoroutineScope.() -> T): T
+    override val coroutineContext: CoroutineContext
+        get() = CoroutinesProvider.COMMON + job
 
     /**
-     * Cancel all async deferred tasks
+     * Was Canceled already
      */
-    fun cancelAllAsync()
+    var wasCanceled: Boolean
 
-    /**
-     * Clean up all resources
-     */
-    fun cleanup()
-
-    /**
-     * Does this manager job was canceled
-     */
-    fun isCanceled(): Boolean
-
-    /**
-     * Add cancel all jobs handler
-     *
-     * @param handler - handler function () -> Unit
-     */
-    fun addCancelationHandler(handler: CancelationHandler)
-
-    /**
-     * Remove cancel job handler
-     *
-     * @param handler - the reference to already added function
-     */
-    fun removeCancelationHandler(handler: CancelationHandler)
-
-    /**
-     * Count of cancelation functions already added
-     */
-    fun cancelationsCount(): Int
 }
+
+/**
+ * launch coroutine on common pool job
+ *
+ * @param block
+ * The worker block to invoke
+ */
+suspend fun <T> IAsyncTasksManager.doAsync(
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    block: SuspendTry<T>
+): Deferred<T> {
+    wasCanceled = false
+    return async(coroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } }
+}
+
+/**
+ * launch coroutine on common pool job
+ *
+ * @param start
+ * Start strategy
+ *
+ * @param block
+ * The worker block to invoke
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncAwait(
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    block: suspend CoroutineScope.() -> T
+): T {
+    wasCanceled = false
+    return doAsync(start, block).await()
+}
+
+/**
+ * Do some work on coroutine context
+ * @param block
+ * The worker block to invoke
+ */
+suspend fun <T> IAsyncTasksManager.doWithContext(
+    block: suspend CoroutineScope.() -> T
+): T = withContext(coroutineContext, block)
+
+/**
+ *
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncTryCatch(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+): Deferred<T> = doAsync(start) {
+    tryCatch(
+        tryBlock = tryBlock,
+        catchBlock = catchBlock,
+        handleCancellationExceptionManually = handleCancellationExceptionManually
+    )
+}
+
+/**
+ *
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncTryCatchFinally(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    finallyBlock: SuspendFinal<T>,
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+): Deferred<T> = doAsync(start) {
+    tryCatchFinally(
+        tryBlock = tryBlock,
+        catchBlock = catchBlock,
+        finallyBlock = finallyBlock,
+        handleCancellationExceptionManually = handleCancellationExceptionManually
+    )
+}
+
+/**
+ *
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncTryFinally(
+    tryBlock: SuspendTry<T>,
+    finallyBlock: SuspendFinal<T>,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+): Deferred<T> = doAsync(start) {
+    tryFinally(
+        tryBlock = tryBlock,
+        finallyBlock = finallyBlock
+    )
+}
+
+/**
+ *
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryCatch(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+): T = doAsyncTryCatch(
+    tryBlock = tryBlock,
+    catchBlock = catchBlock,
+    handleCancellationExceptionManually = handleCancellationExceptionManually,
+    start = start
+).await()
+
+/**
+ *
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryCatchFinally(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    finallyBlock: SuspendFinal<T>,
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+): T = doAsyncTryCatchFinally(
+    tryBlock = tryBlock,
+    catchBlock = catchBlock,
+    finallyBlock = finallyBlock,
+    handleCancellationExceptionManually = handleCancellationExceptionManually,
+    start = start
+).await()
+
+/**
+ *
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryFinally(
+    tryBlock: SuspendTry<T>,
+    finallyBlock: SuspendFinal<T>,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+): T = doAsyncTryFinally(
+    tryBlock = tryBlock,
+    finallyBlock = finallyBlock,
+    start = start
+).await()
+
+
+/**
+ * cancel all working coroutines
+ */
+@Synchronized
+fun IAsyncTasksManager.cancelAllAsync() {
+    wasCanceled = true
+    coroutineContext.cancelChildren()
+    cancelationHandlers.forEach { it() }
+}
+
+/**
+ * Clear all working coroutines and cancelationHandlers
+ */
+@Synchronized
+fun IAsyncTasksManager.cleanup() {
+    coroutineContext.cancelChildren()
+    cancelationHandlers.clear()
+}
+
+/**
+ * Add cancel all jobs handler
+ *
+ * @param handler - handler function () -> Unit
+ */
+@Synchronized
+fun IAsyncTasksManager.addCancelationHandler(handler: CancelationHandler) {
+    cancelationHandlers.add(handler)
+}
+
+/**
+ * Remove cancel job handler
+ *
+ * @param handler - the reference to already added function
+ */
+@Synchronized
+fun IAsyncTasksManager.removeCancelationHandler(handler: CancelationHandler) {
+    cancelationHandlers.remove(handler)
+}
+
+/**
+ * Count of cancelations function on this manager
+ */
+fun IAsyncTasksManager.cancelationsCount(): Int {
+    return cancelationHandlers.size
+}
+
+/**
+ * Was this manager canceled already
+ */
+@Synchronized
+fun IAsyncTasksManager.isCanceled(): Boolean = wasCanceled
