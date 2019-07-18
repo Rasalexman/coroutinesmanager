@@ -1,5 +1,5 @@
 # Kotlin Coroutines Manager
-[ ![Download](https://api.bintray.com/packages/sphc/KotlinCoroutinesManager/coroutinesmanager/images/download.svg?version=1.0.0) ](https://bintray.com/sphc/KotlinCoroutinesManager/coroutinesmanager/1.0.0/link)[![Kotlin 1.3.31](https://img.shields.io/badge/Kotlin-1.3.31-blue.svg)](http://kotlinlang.org)
+[ ![Download](https://api.bintray.com/packages/sphc/KotlinCoroutinesManager/coroutinesmanager/images/download.svg?version=1.1.1) ](https://bintray.com/sphc/KotlinCoroutinesManager/coroutinesmanager/1.1.1/link)[![Kotlin 1.3.31](https://img.shields.io/badge/Kotlin-1.3.31-blue.svg)](http://kotlinlang.org)
 
 Some helpful kotlin coroutines manager classes and extensions. You can turn every function into coroutine function with powerful try-catch-finally blocks
 
@@ -43,16 +43,23 @@ class AsyncWorker(
     private val asyncTaskManager: IAsyncTasksManager = AsyncTasksManager()
 ) : IAsyncTasksManager by asyncTaskManager {
 
-    suspend fun awaitSomeHardWorkToComplete() = asyncAwait {
-        Thread.sleep(5000)
-        // this will goes into `catchBlock` of launched coroutine function
-        if (Random.nextInt(1, 20) % 2 == 0)
-            throw RuntimeException("THERE IS AN ERROR")
-        // final result
-        "OPERATION COMPLETE"
-    }
+    suspend fun awaitSomeHardWorkToComplete() = doTryCatchAsyncAwait(
+        tryBlock = {
+            println("----> ASYNC 'TRY' BLOCK")
+
+            delay(3000L)
+            if (Random.nextInt(1, 20) % 2 == 0)
+                throw RuntimeException("THERE IS AN ERROR")
+
+            "OPERATION COMPLETE"
+        },
+        catchBlock = {
+            println("----> ASYNC 'CATCH' BLOCK")
+            throw it
+        }
+    )
     
-    suspend fun <T> createDeferrerForAwait(): Deferred<T> = async {
+    suspend fun <T> createDeferrerForAwait(): Deferred<T> = doAsync {
         "SOME WORK HERE"
     }
 }
