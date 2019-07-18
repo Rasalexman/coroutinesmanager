@@ -43,14 +43,21 @@ class AsyncWorker(
     private val asyncTaskManager: IAsyncTasksManager = AsyncTasksManager()
 ) : IAsyncTasksManager by asyncTaskManager {
 
-    suspend fun awaitSomeHardWorkToComplete() = asyncAwait {
-        Thread.sleep(5000)
-        // this will goes into `catchBlock` of launched coroutine function
-        if (Random.nextInt(1, 20) % 2 == 0)
-            throw RuntimeException("THERE IS AN ERROR")
-        // final result
-        "OPERATION COMPLETE"
-    }
+    suspend fun awaitSomeHardWorkToComplete() = doTryCatchAsyncAwait(
+        tryBlock = {
+            println("----> ASYNC 'TRY' BLOCK")
+
+            delay(3000L)
+            if (Random.nextInt(1, 20) % 2 == 0)
+                throw RuntimeException("THERE IS AN ERROR")
+
+            "OPERATION COMPLETE"
+        },
+        catchBlock = {
+            println("----> ASYNC 'CATCH' BLOCK")
+            throw it
+        }
+    )
     
     suspend fun <T> createDeferrerForAwait(): Deferred<T> = async {
         "SOME WORK HERE"
