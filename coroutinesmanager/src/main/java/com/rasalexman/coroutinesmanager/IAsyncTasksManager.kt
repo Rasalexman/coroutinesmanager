@@ -30,7 +30,7 @@ interface IAsyncTasksManager : CoroutineScope {
      * You better to override this val in implementing classes,
      * because when you create a new coroutine you will always
      * work with providing single job that store all of your coroutines
-     * no matter if you work on UI or COMMON
+     * no matter if you work on [CoroutinesProvider.UI] or [CoroutinesProvider.COMMON]
      */
     val job: Job
         get() = CoroutinesProvider.supervisorJob
@@ -38,7 +38,7 @@ interface IAsyncTasksManager : CoroutineScope {
     /**
      * Cancelation handlers local store
      */
-    val cancelationHandlers: MutableSet<CancelationHandler>
+    val cancelationHandlers: MutableSet<CancelationHandler>?
 
     /**
      * CoroutineContext to use in this manager. It's async
@@ -56,8 +56,8 @@ interface IAsyncTasksManager : CoroutineScope {
 /**
  * launch coroutine on common pool job
  *
- * @param block
- * The worker block to invoke
+ * @param start - starting coroutine strategy [CoroutineStart]
+ * @param block - The worker block to invoke
  */
 suspend fun <T> IAsyncTasksManager.doAsync(
     start: CoroutineStart = CoroutineStart.DEFAULT,
@@ -68,7 +68,7 @@ suspend fun <T> IAsyncTasksManager.doAsync(
 }
 
 /**
- * launch coroutine on common pool job
+ * launch coroutine on common pool job and await a result
  *
  * @param start
  * Start strategy
@@ -85,18 +85,15 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwait(
 }
 
 /**
- * Do some work on coroutine context
- * @param block
- * The worker block to invoke
- */
-suspend fun <T> IAsyncTasksManager.doWithContext(
-    block: suspend CoroutineScope.() -> T
-): T = withContext(coroutineContext, block)
-
-/**
+ * Doing some async work with tryCatch block
  *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled.
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart]
  */
-suspend fun <T> IAsyncTasksManager.doAsyncTryCatch(
+suspend fun <T> IAsyncTasksManager.doTryCatchAsync(
     tryBlock: SuspendTry<T>,
     catchBlock: SuspendCatch<T>,
     handleCancellationExceptionManually: Boolean = false,
@@ -110,9 +107,16 @@ suspend fun <T> IAsyncTasksManager.doAsyncTryCatch(
 }
 
 /**
+ * Doing some async work with tryCatchFinally block
  *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?`
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
  */
-suspend fun <T> IAsyncTasksManager.doAsyncTryCatchFinally(
+suspend fun <T> IAsyncTasksManager.doTryCatchFinallyAsync(
     tryBlock: SuspendTry<T>,
     catchBlock: SuspendCatch<T>,
     finallyBlock: SuspendFinal<T>,
@@ -128,9 +132,15 @@ suspend fun <T> IAsyncTasksManager.doAsyncTryCatchFinally(
 }
 
 /**
+ * Doing some async work with tryFinally block. If there is an error occures
+ * It will be throwed and passed into [finallyBlock] as parameter
  *
+ * @param tryBlock      - main working block
+ * @param finallyBlock  - there is a block where exception can exist as param `it:Throwable?`
+ *
+ * @param start         - starting coroutine strategy [CoroutineStart]
  */
-suspend fun <T> IAsyncTasksManager.doAsyncTryFinally(
+suspend fun <T> IAsyncTasksManager.doTryFinallyAsync(
     tryBlock: SuspendTry<T>,
     finallyBlock: SuspendFinal<T>,
     start: CoroutineStart = CoroutineStart.DEFAULT
@@ -142,14 +152,21 @@ suspend fun <T> IAsyncTasksManager.doAsyncTryFinally(
 }
 
 /**
+ * Doing some async work with tryCatch block and wait for result
+ * This function does not block a MAIN thread
  *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled.
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart]
  */
-suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryCatch(
+suspend fun <T> IAsyncTasksManager.doTryCatchAsyncAwait(
     tryBlock: SuspendTry<T>,
     catchBlock: SuspendCatch<T>,
     handleCancellationExceptionManually: Boolean = false,
     start: CoroutineStart = CoroutineStart.DEFAULT
-): T = doAsyncTryCatch(
+): T = doTryCatchAsync(
     tryBlock = tryBlock,
     catchBlock = catchBlock,
     handleCancellationExceptionManually = handleCancellationExceptionManually,
@@ -157,15 +174,23 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryCatch(
 ).await()
 
 /**
+ * Doing some async work with tryCatchFinally block and waiting for [tryBlock] result
+ * or some errors in [catchBlock]
  *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled
+ * @param finallyBlock  - there is a block where exception can exist as param `it:Throwable?`
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart]
  */
-suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryCatchFinally(
+suspend fun <T> IAsyncTasksManager.doTryCatchFinallyAsyncAwait(
     tryBlock: SuspendTry<T>,
     catchBlock: SuspendCatch<T>,
     finallyBlock: SuspendFinal<T>,
     handleCancellationExceptionManually: Boolean = false,
     start: CoroutineStart = CoroutineStart.DEFAULT
-): T = doAsyncTryCatchFinally(
+): T = doTryCatchFinallyAsync(
     tryBlock = tryBlock,
     catchBlock = catchBlock,
     finallyBlock = finallyBlock,
@@ -174,13 +199,19 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryCatchFinally(
 ).await()
 
 /**
+ * Doing some async work with tryFinally block and waiting for [tryBlock] result.
+ * If there is an error occures, It will be throwed and passed into [finallyBlock] as parameter
  *
+ * @param tryBlock      - main working block
+ * @param finallyBlock  - there is a block where exception can exist as param `it:Throwable?`
+ *
+ * @param start         - starting coroutine strategy [CoroutineStart]
  */
-suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryFinally(
+suspend fun <T> IAsyncTasksManager.doTryFinallyAsyncAwait(
     tryBlock: SuspendTry<T>,
     finallyBlock: SuspendFinal<T>,
     start: CoroutineStart = CoroutineStart.DEFAULT
-): T = doAsyncTryFinally(
+): T = doTryFinallyAsync(
     tryBlock = tryBlock,
     finallyBlock = finallyBlock,
     start = start
@@ -194,7 +225,7 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwaitTryFinally(
 fun IAsyncTasksManager.cancelAllAsync() {
     wasCanceled = true
     coroutineContext.cancelChildren()
-    cancelationHandlers.forEach { it() }
+    cancelationHandlers?.forEach { it() }
 }
 
 /**
@@ -203,17 +234,17 @@ fun IAsyncTasksManager.cancelAllAsync() {
 @Synchronized
 fun IAsyncTasksManager.cleanup() {
     coroutineContext.cancelChildren()
-    cancelationHandlers.clear()
+    cancelationHandlers?.clear()
 }
 
 /**
  * Add cancel all jobs handler
  *
- * @param handler - handler function () -> Unit
+ * @param handler - handler for cancel coroutine job manually [CancelationHandler]
  */
 @Synchronized
 fun IAsyncTasksManager.addCancelationHandler(handler: CancelationHandler) {
-    cancelationHandlers.add(handler)
+    cancelationHandlers?.add(handler)
 }
 
 /**
@@ -223,14 +254,14 @@ fun IAsyncTasksManager.addCancelationHandler(handler: CancelationHandler) {
  */
 @Synchronized
 fun IAsyncTasksManager.removeCancelationHandler(handler: CancelationHandler) {
-    cancelationHandlers.remove(handler)
+    cancelationHandlers?.remove(handler)
 }
 
 /**
  * Count of cancelations function on this manager
  */
 fun IAsyncTasksManager.cancelationsCount(): Int {
-    return cancelationHandlers.size
+    return cancelationHandlers?.size ?: 0
 }
 
 /**

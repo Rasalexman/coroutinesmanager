@@ -117,7 +117,7 @@ class AsyncWorker(
     private val asyncTaskManager: IAsyncTasksManager = AsyncTasksManager()
 ) : IAsyncTasksManager by asyncTaskManager {
 
-    suspend fun awaitSomeHardWorkToComplete() = doAsyncAwaitTryCatch(
+    suspend fun awaitSomeHardWorkToComplete() = doTryCatchAsyncAwait(
         tryBlock = {
             println("----> ASYNC 'TRY' BLOCK")
 

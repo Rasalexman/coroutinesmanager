@@ -18,10 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package com.rasalexman.coroutinesmanager
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -49,42 +46,80 @@ interface ICoroutinesManager : CoroutineScope {
 
 /**
  * Launch some suspend function on UI thread
+ *
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
+ * @param block         - main block for execute on UI Thread
  */
-fun ICoroutinesManager.launchOnUI(block: SuspendTry<Unit>) {
-    launch(coroutineContext) { block() }.also { job -> job.invokeOnCompletion { job.cancel() } }
-}
+fun ICoroutinesManager.launchOnUI(
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    block: SuspendTry<Unit>
+) = launch(coroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } }
+
 
 /**
  * Launch some suspend function on UI thread with try catch block
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled.
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
  */
 fun ICoroutinesManager.launchOnUITryCatch(
     tryBlock: SuspendTry<Unit>,
     catchBlock: SuspendCatch<Unit>,
-    handleCancellationExceptionManually: Boolean = false
-) = launchOnUI {
-    tryCatch(tryBlock, catchBlock, handleCancellationExceptionManually)
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+) = launchOnUI(start) {
+    tryCatch(
+        tryBlock = tryBlock,
+        catchBlock = catchBlock,
+        handleCancellationExceptionManually = handleCancellationExceptionManually
+    )
 }
 
 /**
  * Launch some suspend function on UI thread with try catch finally block
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?`
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
  */
 fun ICoroutinesManager.launchOnUITryCatchFinally(
     tryBlock: SuspendTry<Unit>,
     catchBlock: SuspendCatch<Unit>,
     finallyBlock: SuspendFinal<Unit>,
-    handleCancellationExceptionManually: Boolean = false
-) = launchOnUI {
-    tryCatchFinally(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually)
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+) = launchOnUI(start) {
+    tryCatchFinally(
+        tryBlock = tryBlock,
+        catchBlock = catchBlock,
+        finallyBlock = finallyBlock,
+        handleCancellationExceptionManually = handleCancellationExceptionManually
+    )
 }
 
 /**
- * Launch some suspend function on UI thread with try finally block
+ * Launch some suspend function on UI thread with try finally block. If there is an error occures
+ * It will be throwed and passed into [finallyBlock] as parameter
+ *
+ * @param tryBlock      - main working block
+ * @param finallyBlock  - there is a block where exception can exist as param `it:Throwable?`
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
  */
 fun ICoroutinesManager.launchOnUITryFinally(
     tryBlock: SuspendTry<Unit>,
-    finallyBlock: SuspendFinal<Unit>
-) = launchOnUI {
-    tryFinally(tryBlock, finallyBlock)
+    finallyBlock: SuspendFinal<Unit>,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+) = launchOnUI(start) {
+    tryFinally(
+        tryBlock = tryBlock,
+        finallyBlock = finallyBlock
+    )
 }
 
 /**
