@@ -53,7 +53,9 @@ interface ICoroutinesManager : CoroutineScope {
 fun ICoroutinesManager.launchOnUI(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<Unit>
-) = launch(coroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } }
+) {
+    launch(coroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } }
+}
 
 
 /**
