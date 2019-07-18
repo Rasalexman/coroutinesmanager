@@ -59,7 +59,7 @@ class AsyncWorker(
         }
     )
     
-    suspend fun <T> createDeferrerForAwait(): Deferred<T> = async {
+    suspend fun <T> createDeferrerForAwait(): Deferred<T> = doAsync {
         "SOME WORK HERE"
     }
 }
