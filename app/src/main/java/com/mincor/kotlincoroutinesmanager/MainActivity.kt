@@ -59,7 +59,6 @@ class MainActivity(
         //doOnUiOnly()
     }
 
-    @UseExperimental(ExperimentalCoroutinesApi::class)
     fun doOnUiOnly() = launchOnUI {
         flowTitleView.text = getString(R.string.start_title)
         flow {
