@@ -1,5 +1,5 @@
 # Kotlin Coroutines Manager
-[ ![Download](https://api.bintray.com/packages/sphc/KotlinCoroutinesManager/coroutinesmanager/images/download.svg?version=1.1.1) ](https://bintray.com/sphc/KotlinCoroutinesManager/coroutinesmanager/1.1.1/link)[![Kotlin 1.3.31](https://img.shields.io/badge/Kotlin-1.3.31-blue.svg)](http://kotlinlang.org)
+[![Download](https://api.bintray.com/packages/sphc/KotlinCoroutinesManager/coroutinesmanager/images/download.svg?version=1.1.2)](https://bintray.com/sphc/KotlinCoroutinesManager/coroutinesmanager/1.1.2/link) [![Kotlin 1.3.41](https://img.shields.io/badge/Kotlin-1.3.41-blue.svg)](http://kotlinlang.org) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/12165b84f5e14ade83ebbf508cf17cbc)](https://app.codacy.com/app/Rasalexman/coroutinesmanager?utm_source=github.com&utm_medium=referral&utm_content=Rasalexman/coroutinesmanager&utm_campaign=Badge_Grade_Dashboard)
 
 Some helpful kotlin coroutines manager classes and extensions. You can turn every function into coroutine function with powerful try-catch-finally blocks
 
