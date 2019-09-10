@@ -18,22 +18,20 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package com.rasalexman.coroutinesmanager
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 
 /**
  * AsyncTasksManager for doing some async work
+ *
+ * @param job - current coroutines ASYNC job
  */
-open class AsyncTasksManager : IAsyncTasksManager {
+open class AsyncTasksManager(override val job: Job = SupervisorJob()) : IAsyncTasksManager {
 
     /**
      * Cancelation handlers local store
      */
     override val cancelationHandlers: MutableSet<CancelationHandler> = mutableSetOf()
-
-    /**
-     * Async Job
-     */
-    override val job = SupervisorJob()
 
     /**
      * Was Canceled already

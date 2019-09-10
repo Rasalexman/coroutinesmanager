@@ -18,15 +18,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package com.rasalexman.coroutinesmanager
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 
 /**
  * Simple CoroutinesManager to use with your regular classes
+ *
+ * @param job - current working job for UI coroutine
  */
-open class CoroutinesManager : ICoroutinesManager {
-
-    /**
-     * Working job
-     */
-    override val job = SupervisorJob()
-}
+open class CoroutinesManager(override val job: Job = SupervisorJob()) : ICoroutinesManager
