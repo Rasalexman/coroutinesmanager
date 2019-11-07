@@ -1,5 +1,5 @@
 # Kotlin Coroutines Manager
-[![Download](https://api.bintray.com/packages/sphc/KotlinCoroutinesManager/coroutinesmanager/images/download.svg?version=1.1.2)](https://bintray.com/sphc/KotlinCoroutinesManager/coroutinesmanager/1.1.2/link) [![Kotlin 1.3.50](https://img.shields.io/badge/Kotlin-1.3.50-blue.svg)](http://kotlinlang.org) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/12165b84f5e14ade83ebbf508cf17cbc)](https://app.codacy.com/app/Rasalexman/coroutinesmanager?utm_source=github.com&utm_medium=referral&utm_content=Rasalexman/coroutinesmanager&utm_campaign=Badge_Grade_Dashboard) [![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
+[![Download](https://api.bintray.com/packages/sphc/KotlinCoroutinesManager/coroutinesmanager/images/download.svg)](https://bintray.com/sphc/KotlinCoroutinesManager/coroutinesmanager/_latestVersion) [![Kotlin 1.3.50](https://img.shields.io/badge/Kotlin-1.3.50-blue.svg)](http://kotlinlang.org) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/12165b84f5e14ade83ebbf508cf17cbc)](https://app.codacy.com/app/Rasalexman/coroutinesmanager?utm_source=github.com&utm_medium=referral&utm_content=Rasalexman/coroutinesmanager&utm_campaign=Badge_Grade_Dashboard) [![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
 
 Some helpful kotlin coroutines manager classes and extensions. You can turn every function into coroutine function with powerful try-catch-finally blocks
 
@@ -17,6 +17,22 @@ class MainActivity(
     }, catchBlock = {
         // catch every exception
     })
+    
+    // Sinse version 1.2.0
+    private fun launchUiAsyncAction() = launchOnUITryCatchFinallyAsyncAwait(
+        tryBlock = {
+
+            delay(3000L)
+            if (Random.nextInt(1, 20) % 2 == 0)
+                throw RuntimeException("THERE IS AN ERROR")
+
+            println("----> launchUiAsyncAction 'TRY' BLOCK COMPLETE")
+        }, catchBlock = {
+            println("----> ASYNC 'CATCH' BLOCK ${Thread.currentThread().name}")
+            titleTextView.text = it.message
+        }, finallyBlock = {
+
+        })
     
     fun tryFinally() = launchOnUITryFinally(tryBlock = {
         // try some action that maybe produce an exceptions
