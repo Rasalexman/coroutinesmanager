@@ -5,7 +5,6 @@ import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import com.rasalexman.coroutinesmanager.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
@@ -16,9 +15,6 @@ class MainActivity(
     private val coroutinesManager: ICoroutinesManager = CoroutinesManager()
 ) : AppCompatActivity(), ICoroutinesManager by coroutinesManager {
 
-    // Async worker may be into your DI as uses case
-    private val asyncWorker = AsyncWorker()
-
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -26,13 +22,32 @@ class MainActivity(
 
         titleTextView.text = "Click to start coroutines scope"
         repeateButton.setOnClickListener {
-            if (!coroutinesManager.isCompleted()) {
+            if (!isCompleted) {
                 onCancelAllCoroutinesListener()
             } else {
                 onRepeateButtonClickListener()
             }
         }
+
+        println("-----> START WORK")
+        launchUiAsyncAction()
+        println("-----> AFTER WORK")
     }
+
+    private fun launchUiAsyncAction() = launchOnUITryCatchFinallyAsyncAwait(
+        tryBlock = {
+
+            delay(3000L)
+            if (Random.nextInt(1, 20) % 2 == 0)
+                throw RuntimeException("THERE IS AN ERROR")
+
+            println("----> launchUiAsyncAction 'TRY' BLOCK COMPLETE")
+        }, catchBlock = {
+            println("----> ASYNC 'CATCH' BLOCK ${Thread.currentThread().name}")
+            titleTextView.text = it.message
+        }, finallyBlock = {
+
+        })
 
     fun tryCatch() = launchOnUITryCatch(tryBlock = {
         // do some work on ui
@@ -75,8 +90,7 @@ class MainActivity(
 
 
     private fun onCancelAllCoroutinesListener() {
-        coroutinesManager.cancelUICoroutines()
-        asyncWorker.cancelAllAsync()
+        cancelAllCoroutines()
     }
 
     @SuppressLint("SetTextI18n")
@@ -88,9 +102,22 @@ class MainActivity(
             titleTextView.text = "Start doing hard work"
             repeateButton.text = getString(R.string.stop_title)
             // add cancelation function on this worker
-            asyncWorker.addCancelationHandler(::onAllJobsWasCanceledHandler)
+            addCancelationHandler(::onAllJobsWasCanceledHandler)
             // Await result
-            val result = asyncWorker.awaitSomeHardWorkToComplete()
+            val result = doTryCatchAsyncAwait(
+                tryBlock = {
+                    println("----> ASYNC 'TRY' BLOCK")
+                    delay(3000L)
+                    if (Random.nextInt(1, 20) % 2 == 0)
+                        throw RuntimeException("THERE IS AN ERROR")
+
+                    "OPERATION COMPLETE"
+                },
+                catchBlock = {
+                    println("----> ASYNC 'CATCH' BLOCK")
+                    throw it
+                }
+            )
             // Show result
             titleTextView.text = result
         }, catchBlock = {
@@ -103,33 +130,10 @@ class MainActivity(
         })
 
     private fun onAllJobsWasCanceledHandler() {
-        if (asyncWorker.isCanceled()) {
+        if (isCancelled) {
             titleTextView.text = getString(R.string.caceled_title)
         }
         repeateButton.text = getString(R.string.start_title)
-        asyncWorker.removeCancelationHandler(::onAllJobsWasCanceledHandler)
+        removeCancelationHandler(::onAllJobsWasCanceledHandler)
     }
-}
-
-class AsyncWorker(
-    // You can store this class as global singleton into your DI framework
-    private val asyncTaskManager: IAsyncTasksManager = AsyncTasksManager()
-) : IAsyncTasksManager by asyncTaskManager {
-
-    suspend fun awaitSomeHardWorkToComplete() = doTryCatchAsyncAwait(
-        tryBlock = {
-            println("----> ASYNC 'TRY' BLOCK")
-
-            delay(3000L)
-            if (Random.nextInt(1, 20) % 2 == 0)
-                throw RuntimeException("THERE IS AN ERROR")
-
-            "OPERATION COMPLETE"
-        },
-        catchBlock = {
-            println("----> ASYNC 'CATCH' BLOCK")
-            throw it
-        }
-    )
-
 }
