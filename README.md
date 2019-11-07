@@ -18,6 +18,22 @@ class MainActivity(
         // catch every exception
     })
     
+    // Sinse version 1.2.0
+    private fun launchUiAsyncAction() = launchOnUITryCatchFinallyAsyncAwait(
+        tryBlock = {
+
+            delay(3000L)
+            if (Random.nextInt(1, 20) % 2 == 0)
+                throw RuntimeException("THERE IS AN ERROR")
+
+            println("----> launchUiAsyncAction 'TRY' BLOCK COMPLETE")
+        }, catchBlock = {
+            println("----> ASYNC 'CATCH' BLOCK ${Thread.currentThread().name}")
+            titleTextView.text = it.message
+        }, finallyBlock = {
+
+        })
+    
     fun tryFinally() = launchOnUITryFinally(tryBlock = {
         // try some action that maybe produce an exceptions
     }, finallyBlock = {
