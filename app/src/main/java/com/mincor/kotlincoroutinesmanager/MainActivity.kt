@@ -11,9 +11,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.random.Random
 
-class MainActivity(
-    private val coroutinesManager: ICoroutinesManager = CoroutinesManager()
-) : AppCompatActivity(), ICoroutinesManager by coroutinesManager {
+class MainActivity : AppCompatActivity(), ICoroutinesManager {
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
