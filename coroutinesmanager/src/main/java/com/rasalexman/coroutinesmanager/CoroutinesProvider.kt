@@ -39,9 +39,14 @@ object CoroutinesProvider {
     val IO by lazyOf(kotlinx.coroutines.Dispatchers.IO)
 
     /**
-     * Supervisor job
+     * Supervisor job for UI operations
      */
     val supervisorJob by lazyOf(SupervisorJob())
+
+    /**
+     * Supervisor job for async operations
+     */
+    val asyncSupervisorJob by lazyOf(SupervisorJob())
 
     /**
      * Default cancelation handlers set

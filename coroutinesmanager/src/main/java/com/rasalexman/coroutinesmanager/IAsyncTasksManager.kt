@@ -33,7 +33,7 @@ interface IAsyncTasksManager {
      * no matter if you work on [CoroutinesProvider.UI] or [CoroutinesProvider.COMMON]
      */
     val asyncJob: Job
-        get() = CoroutinesProvider.supervisorJob
+        get() = CoroutinesProvider.asyncSupervisorJob
 
     /**
      * Cancelation handlers local store
