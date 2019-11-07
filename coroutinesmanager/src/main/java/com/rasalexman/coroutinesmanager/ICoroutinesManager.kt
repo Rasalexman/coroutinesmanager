@@ -24,7 +24,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * ICoroutinesManager
  */
-interface ICoroutinesManager : CoroutineScope {
+interface ICoroutinesManager : CoroutineScope, IAsyncTasksManager {
     /**
      * Working job
      *
@@ -35,6 +35,12 @@ interface ICoroutinesManager : CoroutineScope {
      */
     val job: Job
         get() = CoroutinesProvider.supervisorJob
+
+    /**
+     * Cancelation handlers local store
+     */
+    override val cancelationHandlers: MutableSet<CancelationHandler>?
+        get() = CoroutinesProvider.cancelationHandlersSet
 
     /**
      * Coroutine Context
@@ -54,7 +60,7 @@ fun ICoroutinesManager.launchOnUI(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<Unit>
 ) {
-    launch(coroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } }
+    launch(start = start, block = block).also { job -> job.invokeOnCompletion { job.cancel() } }
 }
 
 
@@ -106,7 +112,7 @@ fun ICoroutinesManager.launchOnUITryCatchFinally(
 }
 
 /**
- * Launch some suspend function on UI thread with try finally block. If there is an error occures
+ * Launch some suspend function on UI thread with try finally block. If there is an error occurs
  * It will be throwed and passed into [finallyBlock] as parameter
  *
  * @param tryBlock      - main working block
@@ -125,15 +131,100 @@ fun ICoroutinesManager.launchOnUITryFinally(
 }
 
 /**
- * Cancel all working coroutines
+ * Launch Async operation on separated thread launched ou UI coroutine
+ *
+ * @param startAsync         - starting async coroutine strategy [CoroutineStart]
+ * @param startUI            - starting UI coroutine strategy [CoroutineStart]
+ * @param block              - main working block
+ */
+fun ICoroutinesManager.launchOnUIAsyncAwait(
+    startUI: CoroutineStart = CoroutineStart.DEFAULT,
+    startAsync: CoroutineStart = CoroutineStart.DEFAULT,
+    block: SuspendTry<Unit>
+) = launchOnUI(startUI) {
+    doAsyncAwait(startAsync, block)
+}
+
+/**
+ * Launch Async operation on separated thread with try catch
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled it always catch exception on UI
+ *
+ * @param startAsync         - starting async coroutine strategy [CoroutineStart]
+ * @param startUI            - starting UI coroutine strategy [CoroutineStart]
+ */
+fun ICoroutinesManager.launchOnUITryCatchAsyncAwait(
+    startUI: CoroutineStart = CoroutineStart.DEFAULT,
+    startAsync: CoroutineStart = CoroutineStart.DEFAULT,
+    tryBlock: SuspendTry<Unit>,
+    catchBlock: SuspendCatch<Unit>
+) = launchOnUITryCatch(tryBlock = {
+    doAsyncAwait(startAsync, tryBlock)
+}, catchBlock = catchBlock, start = startUI)
+
+/**
+ * Launch Async operation on separated thread with try catch finally blocks
+ *
+ * @param tryBlock      - async await working block
+ * @param catchBlock    - block where throwable will be handled on UI
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?` on UI
+ *
+ * @param startAsync         - starting async coroutine strategy [CoroutineStart]
+ * @param startUI            - starting UI coroutine strategy [CoroutineStart]
+ */
+fun ICoroutinesManager.launchOnUITryCatchFinallyAsyncAwait(
+    startUI: CoroutineStart = CoroutineStart.DEFAULT,
+    startAsync: CoroutineStart = CoroutineStart.DEFAULT,
+    tryBlock: SuspendTry<Unit>,
+    catchBlock: SuspendCatch<Unit>,
+    finallyBlock: SuspendFinal<Unit>
+) = launchOnUITryCatchFinally(tryBlock = {
+    doAsyncAwait(startAsync, tryBlock)
+}, catchBlock = catchBlock, finallyBlock = finallyBlock, start = startUI)
+
+/**
+ * Launch Async operation on separated thread with try finally blocks
+ *
+ * @param tryBlock      - async await working block
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?` on UI
+ *
+ * @param startAsync         - starting async coroutine strategy [CoroutineStart]
+ * @param startUI            - starting UI coroutine strategy [CoroutineStart]
+ */
+fun ICoroutinesManager.launchOnUITryFinallyAsyncAwait(
+    startUI: CoroutineStart = CoroutineStart.DEFAULT,
+    startAsync: CoroutineStart = CoroutineStart.DEFAULT,
+    tryBlock: SuspendTry<Unit>,
+    finallyBlock: SuspendFinal<Unit>
+) = launchOnUITryFinally(tryBlock = {
+    doAsyncAwait(startAsync, tryBlock)
+}, finallyBlock = finallyBlock, start = startUI)
+
+/**
+ * Cancel all working UI coroutines
  */
 fun ICoroutinesManager.cancelUICoroutines() {
     coroutineContext.cancelChildren()
 }
 
 /**
- * Is All coroutines on UI complete
+ * Cancel all coroutines in this Scope with Async jobs
  */
-fun ICoroutinesManager.isCompleted(): Boolean {
-    return !this.job.children.any()
+fun ICoroutinesManager.cancelAllCoroutines() {
+    cancelUICoroutines()
+    cancelAllAsync()
 }
+
+/**
+ * Was all coroutines on UI & Async canceled
+ */
+val ICoroutinesManager.isCancelled: Boolean
+   get() = asyncJob.children.all { it.isCancelled } && job.children.all { it.isCancelled }
+
+
+/**
+ * Was all coroutines on UI & Async complete
+ */
+val ICoroutinesManager.isCompleted: Boolean
+    get() = !this.job.children.any() && !asyncJob.children.any()

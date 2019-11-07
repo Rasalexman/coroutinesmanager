@@ -27,19 +27,24 @@ object CoroutinesProvider {
     /**
      * Main UI Thread Provider
      */
-    val UI = kotlinx.coroutines.Dispatchers.Main
+    val UI by lazyOf(kotlinx.coroutines.Dispatchers.Main)
     /**
      * Common Thread provider
      */
-    val COMMON = kotlinx.coroutines.Dispatchers.Default
+    val COMMON by lazyOf(kotlinx.coroutines.Dispatchers.Default)
 
     /**
      * IO Thread provider
      */
-    val IO = kotlinx.coroutines.Dispatchers.IO
+    val IO by lazyOf(kotlinx.coroutines.Dispatchers.IO)
 
     /**
      * Supervisor job
      */
-    val supervisorJob by lazy { SupervisorJob() }
+    val supervisorJob by lazyOf(SupervisorJob())
+
+    /**
+     * Default cancelation handlers set
+     */
+    val cancelationHandlersSet by lazyOf(mutableSetOf<CancelationHandler>())
 }

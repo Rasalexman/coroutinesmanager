@@ -23,18 +23,16 @@ import kotlinx.coroutines.SupervisorJob
 
 /**
  * AsyncTasksManager for doing some async work
- *
- * @param job - current coroutines ASYNC job
  */
-open class AsyncTasksManager(override val job: Job = SupervisorJob()) : IAsyncTasksManager {
+open class AsyncTasksManager : IAsyncTasksManager {
+
+    /**
+     * Ccurrent coroutines ASYNC job
+     */
+    override val asyncJob: Job by lazyOf(SupervisorJob())
 
     /**
      * Cancelation handlers local store
      */
-    override val cancelationHandlers: MutableSet<CancelationHandler> = mutableSetOf()
-
-    /**
-     * Was Canceled already
-     */
-    override var wasCanceled: Boolean = false
+    override val cancelationHandlers: MutableSet<CancelationHandler> by lazyOf(mutableSetOf())
 }

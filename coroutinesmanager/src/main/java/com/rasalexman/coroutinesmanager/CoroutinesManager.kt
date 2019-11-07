@@ -23,7 +23,11 @@ import kotlinx.coroutines.SupervisorJob
 
 /**
  * Simple CoroutinesManager to use with your regular classes
- *
- * @param job - current working job for UI coroutine
  */
-open class CoroutinesManager(override val job: Job = SupervisorJob()) : ICoroutinesManager
+open class CoroutinesManager : ICoroutinesManager {
+
+    /**
+     * current working job for UI coroutine
+     */
+    override val job: Job by lazyOf(SupervisorJob())
+}

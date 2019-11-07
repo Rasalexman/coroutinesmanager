@@ -24,7 +24,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * IAsyncTasksManager
  */
-interface IAsyncTasksManager : CoroutineScope {
+interface IAsyncTasksManager {
     /**
      * Async Job
      * You better to override this val in implementing classes,
@@ -32,25 +32,20 @@ interface IAsyncTasksManager : CoroutineScope {
      * work with providing single job that store all of your coroutines
      * no matter if you work on [CoroutinesProvider.UI] or [CoroutinesProvider.COMMON]
      */
-    val job: Job
+    val asyncJob: Job
         get() = CoroutinesProvider.supervisorJob
 
     /**
      * Cancelation handlers local store
      */
     val cancelationHandlers: MutableSet<CancelationHandler>?
+            get() = CoroutinesProvider.cancelationHandlersSet
 
     /**
      * CoroutineContext to use in this manager. It's async
      */
-    override val coroutineContext: CoroutineContext
-        get() = CoroutinesProvider.COMMON + job
-
-    /**
-     * Was Canceled already
-     */
-    var wasCanceled: Boolean
-
+    val asyncCoroutineContext: CoroutineContext
+        get() = CoroutinesProvider.COMMON + asyncJob
 }
 
 /**
@@ -63,8 +58,7 @@ suspend fun <T> IAsyncTasksManager.doAsync(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<T>
 ): Deferred<T> {
-    wasCanceled = false
-    return async(coroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } }
+    return coroutineScope { async(asyncCoroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } } }
 }
 
 /**
@@ -78,9 +72,8 @@ suspend fun <T> IAsyncTasksManager.doAsync(
  */
 suspend fun <T> IAsyncTasksManager.doAsyncAwait(
     start: CoroutineStart = CoroutineStart.DEFAULT,
-    block: suspend CoroutineScope.() -> T
+    block: SuspendTry<T>
 ): T {
-    wasCanceled = false
     return doAsync(start, block).await()
 }
 
@@ -223,8 +216,7 @@ suspend fun <T> IAsyncTasksManager.doTryFinallyAsyncAwait(
  */
 @Synchronized
 fun IAsyncTasksManager.cancelAllAsync() {
-    wasCanceled = true
-    coroutineContext.cancelChildren()
+    asyncCoroutineContext.cancelChildren()
     cancelationHandlers?.forEach { it() }
 }
 
@@ -233,7 +225,7 @@ fun IAsyncTasksManager.cancelAllAsync() {
  */
 @Synchronized
 fun IAsyncTasksManager.cleanup() {
-    coroutineContext.cancelChildren()
+    asyncCoroutineContext.cancelChildren()
     cancelationHandlers?.clear()
 }
 
@@ -260,12 +252,13 @@ fun IAsyncTasksManager.removeCancelationHandler(handler: CancelationHandler) {
 /**
  * Count of cancelations function on this manager
  */
-fun IAsyncTasksManager.cancelationsCount(): Int {
+@Synchronized
+fun IAsyncTasksManager.cancelationsHandlersCount(): Int {
     return cancelationHandlers?.size ?: 0
 }
 
 /**
  * Was this manager canceled already
  */
-@Synchronized
-fun IAsyncTasksManager.isCanceled(): Boolean = wasCanceled
+val IAsyncTasksManager.isCancelled: Boolean
+    get() = asyncJob.children.all { it.isCancelled }
