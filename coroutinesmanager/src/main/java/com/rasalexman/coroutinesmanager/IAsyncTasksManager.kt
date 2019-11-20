@@ -84,6 +84,18 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwait(
 }
 
 /**
+ * Do some async work withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ *
+ * @param block
+ * The worker block to invoke
+ */
+suspend fun <T> IAsyncTasksManager.doWithAsync(
+    block: SuspendTry<T>
+): T {
+    return withContext(asyncCoroutineContext, block)
+}
+
+/**
  * Doing some async work with tryCatch block by create new coroutineScope
  *
  * @param tryBlock      - main working block
