@@ -102,7 +102,7 @@ class MainActivity : AppCompatActivity(), ICoroutinesManager {
             // add cancelation function on this worker
             addCancelationHandler(::onAllJobsWasCanceledHandler)
             // Await result
-            val result = doTryCatchAsyncAwait(
+            val result = doTryCatchWithAsync(
                 tryBlock = {
                     println("----> ASYNC 'TRY' BLOCK")
                     delay(3000L)

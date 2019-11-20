@@ -39,7 +39,7 @@ interface IAsyncTasksManager {
      * Cancelation handlers local store
      */
     val cancelationHandlers: MutableSet<CancelationHandler>?
-            get() = CoroutinesProvider.cancelationHandlersSet
+        get() = CoroutinesProvider.cancelationHandlersSet
 
     /**
      * CoroutineContext to use in this manager. It's async
@@ -58,7 +58,13 @@ suspend fun <T> IAsyncTasksManager.doAsync(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<T>
 ): Deferred<T> {
-    return coroutineScope { async(asyncCoroutineContext, start, block).also { job -> job.invokeOnCompletion { job.cancel() } } }
+    return coroutineScope {
+        async(
+            asyncCoroutineContext,
+            start,
+            block
+        ).also { job -> job.invokeOnCompletion { job.cancel() } }
+    }
 }
 
 /**
@@ -78,7 +84,7 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwait(
 }
 
 /**
- * Doing some async work with tryCatch block
+ * Doing some async work with tryCatch block by create new coroutineScope
  *
  * @param tryBlock      - main working block
  * @param catchBlock    - block where throwable will be handled.
@@ -92,6 +98,28 @@ suspend fun <T> IAsyncTasksManager.doTryCatchAsync(
     handleCancellationExceptionManually: Boolean = false,
     start: CoroutineStart = CoroutineStart.DEFAULT
 ): Deferred<T> = doAsync(start) {
+    tryCatch(
+        tryBlock = tryBlock,
+        catchBlock = catchBlock,
+        handleCancellationExceptionManually = handleCancellationExceptionManually
+    )
+}
+
+
+/**
+ * Doing some async work with tryCatch block without create new coroutineScope
+ * and using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled.
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ */
+suspend fun <T> IAsyncTasksManager.doTryCatchWithAsync(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    handleCancellationExceptionManually: Boolean = false
+): T = withContext(asyncCoroutineContext) {
     tryCatch(
         tryBlock = tryBlock,
         catchBlock = catchBlock,
@@ -125,6 +153,30 @@ suspend fun <T> IAsyncTasksManager.doTryCatchFinallyAsync(
 }
 
 /**
+ * Doing some async work with tryCatchFinally block without create new coroutineScope
+ * and using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?`
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ */
+suspend fun <T> IAsyncTasksManager.doTryCatchFinallyWithAsync(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>,
+    finallyBlock: SuspendFinal<T>,
+    handleCancellationExceptionManually: Boolean = false
+): T = withContext(asyncCoroutineContext) {
+    tryCatchFinally(
+        tryBlock = tryBlock,
+        catchBlock = catchBlock,
+        finallyBlock = finallyBlock,
+        handleCancellationExceptionManually = handleCancellationExceptionManually
+    )
+}
+
+/**
  * Doing some async work with tryFinally block. If there is an error occures
  * It will be throwed and passed into [finallyBlock] as parameter
  *
@@ -138,6 +190,25 @@ suspend fun <T> IAsyncTasksManager.doTryFinallyAsync(
     finallyBlock: SuspendFinal<T>,
     start: CoroutineStart = CoroutineStart.DEFAULT
 ): Deferred<T> = doAsync(start) {
+    tryFinally(
+        tryBlock = tryBlock,
+        finallyBlock = finallyBlock
+    )
+}
+
+/**
+ * Doing some async work with tryFinally block. If there is an error occurs
+ * It will be throwed and passed into [finallyBlock] as parameter
+ * using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ *
+ * @param tryBlock      - main working block
+ * @param finallyBlock  - there is a block where exception can exist as param `it:Throwable?`
+ *
+ */
+suspend fun <T> IAsyncTasksManager.doTryFinallyWithAsync(
+    tryBlock: SuspendTry<T>,
+    finallyBlock: SuspendFinal<T>
+): T = withContext(asyncCoroutineContext) {
     tryFinally(
         tryBlock = tryBlock,
         finallyBlock = finallyBlock
