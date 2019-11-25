@@ -136,9 +136,9 @@ suspend fun <T> IAsyncTasksManager.doWithAsyncAwaitBy(
     handleCancellationExceptionManually: Boolean = false
 ): T {
     return when {
-        catchBlock != null && finallyBlock == null -> doTryCatchWithAsync(tryBlock, catchBlock, handleCancellationExceptionManually)
-        catchBlock != null && finallyBlock != null -> doTryCatchFinallyWithAsync(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually)
-        catchBlock == null && finallyBlock != null -> doTryFinallyWithAsync(tryBlock, finallyBlock)
+        catchBlock != null && finallyBlock == null -> doWithTryCatchAsync(tryBlock, catchBlock, handleCancellationExceptionManually)
+        catchBlock != null && finallyBlock != null -> doWithTryCatchFinallyAsync(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually)
+        catchBlock == null && finallyBlock != null -> doWithTryFinallyAsync(tryBlock, finallyBlock)
         else -> doWithAsync(tryBlock)
     }
 }
@@ -175,7 +175,7 @@ suspend fun <T> IAsyncTasksManager.doTryCatchAsync(
  *
  * @param handleCancellationExceptionManually - does we need to handle cancelation manually
  */
-suspend fun <T> IAsyncTasksManager.doTryCatchWithAsync(
+suspend fun <T> IAsyncTasksManager.doWithTryCatchAsync(
     tryBlock: SuspendTry<T>,
     catchBlock: SuspendCatch<T>,
     handleCancellationExceptionManually: Boolean = false
@@ -222,7 +222,7 @@ suspend fun <T> IAsyncTasksManager.doTryCatchFinallyAsync(
  *
  * @param handleCancellationExceptionManually - does we need to handle cancelation manually
  */
-suspend fun <T> IAsyncTasksManager.doTryCatchFinallyWithAsync(
+suspend fun <T> IAsyncTasksManager.doWithTryCatchFinallyAsync(
     tryBlock: SuspendTry<T>,
     catchBlock: SuspendCatch<T>,
     finallyBlock: SuspendFinal<T>,
@@ -265,7 +265,7 @@ suspend fun <T> IAsyncTasksManager.doTryFinallyAsync(
  * @param finallyBlock  - there is a block where exception can exist as param `it:Throwable?`
  *
  */
-suspend fun <T> IAsyncTasksManager.doTryFinallyWithAsync(
+suspend fun <T> IAsyncTasksManager.doWithTryFinallyAsync(
     tryBlock: SuspendTry<T>,
     finallyBlock: SuspendFinal<T>
 ): T = withContext(asyncCoroutineContext) {
