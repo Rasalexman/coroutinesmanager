@@ -63,6 +63,54 @@ fun ICoroutinesManager.launchOnUI(
     launch(start = start, block = block).also { job -> job.invokeOnCompletion { job.cancel() } }
 }
 
+/**
+ * Launch some suspend function on UI thread with optional catch and finally blocks
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled (Optional)
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?` (Optional)
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
+ */
+fun ICoroutinesManager.launchOnUiBy(
+    tryBlock: SuspendTry<Unit>,
+    catchBlock: SuspendCatch<Unit>? = null,
+    finallyBlock: SuspendFinal<Unit>? = null,
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+) {
+    when {
+        catchBlock == null && finallyBlock == null -> launchOnUI(start, tryBlock)
+        finallyBlock == null && catchBlock != null -> launchOnUITryCatch(tryBlock, catchBlock, handleCancellationExceptionManually, start)
+        finallyBlock != null && catchBlock != null -> launchOnUITryCatchFinally(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually, start)
+        finallyBlock != null && catchBlock == null -> launchOnUITryFinally(tryBlock, finallyBlock, start)
+    }
+}
+
+/**
+ * Launch some suspend function on AsyncCoroutineContext with optional catch and finally blocks
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled (Optional)
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?` (Optional)
+ *
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
+ */
+fun ICoroutinesManager.launchOnUiAsyncBy(
+    tryBlock: SuspendTry<Unit>,
+    catchBlock: SuspendCatch<Unit>? = null,
+    finallyBlock: SuspendFinal<Unit>? = null,
+    start: CoroutineStart = CoroutineStart.DEFAULT,
+    startAsync: CoroutineStart = CoroutineStart.DEFAULT
+) {
+    when {
+        catchBlock == null && finallyBlock == null -> launchOnUIAsyncAwait(start, startAsync, tryBlock)
+        finallyBlock == null && catchBlock != null -> launchOnUITryCatchAsyncAwait(start, startAsync, tryBlock, catchBlock)
+        finallyBlock != null && catchBlock != null -> launchOnUITryCatchFinallyAsyncAwait(start, startAsync, tryBlock, catchBlock, finallyBlock)
+        finallyBlock != null && catchBlock == null -> launchOnUITryFinallyAsyncAwait(start, startAsync, tryBlock, finallyBlock)
+    }
+}
 
 /**
  * Launch some suspend function on UI thread with try catch block

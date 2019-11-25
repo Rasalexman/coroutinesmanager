@@ -20,6 +20,7 @@ package com.rasalexman.coroutinesmanager
 
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.withContext
 import kotlin.coroutines.CoroutineContext
 
 /**
@@ -133,10 +134,10 @@ suspend fun <T> CoroutineScope.tryCatchWithContext(
     handleCancellationExceptionManually: Boolean = false
 ): T {
     return try {
-        kotlinx.coroutines.withContext(tryContext, tryBlock)
+        withContext(tryContext, tryBlock)
     } catch (e: Throwable) {
         if (e !is CancellationException || handleCancellationExceptionManually) {
-            kotlinx.coroutines.withContext(catchContext) {
+            withContext(catchContext) {
                 catchBlock(e)
             }
         } else {

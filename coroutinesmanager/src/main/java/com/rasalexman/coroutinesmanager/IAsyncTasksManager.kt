@@ -84,6 +84,31 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwait(
 }
 
 /**
+ * launch async coroutine on common pool job and await a result with optional parameters
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled (Optional)
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?` (Optional)
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ * @param start         - starting coroutine strategy [CoroutineStart.DEFAULT] by default
+ */
+suspend fun <T> IAsyncTasksManager.doAsyncAwaitBy(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>? = null,
+    finallyBlock: SuspendFinal<T>? = null,
+    handleCancellationExceptionManually: Boolean = false,
+    start: CoroutineStart = CoroutineStart.DEFAULT
+): T {
+    return when {
+        catchBlock != null && finallyBlock == null -> doTryCatchAsyncAwait(tryBlock, catchBlock, handleCancellationExceptionManually, start)
+        catchBlock != null && finallyBlock != null -> doTryCatchFinallyAsyncAwait(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually, start)
+        catchBlock == null && finallyBlock != null -> doTryFinallyAsyncAwait(tryBlock, finallyBlock, start)
+        else -> doAsyncAwait(start, tryBlock)
+    }
+}
+
+/**
  * Do some async work withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
  *
  * @param block
@@ -93,6 +118,29 @@ suspend fun <T> IAsyncTasksManager.doWithAsync(
     block: SuspendTry<T>
 ): T {
     return withContext(asyncCoroutineContext, block)
+}
+
+/**
+ * launch async coroutine on common pool job and await a result with optional parameters
+ *
+ * @param tryBlock      - main working block
+ * @param catchBlock    - block where throwable will be handled (Optional)
+ * @param finallyBlock  - there is a block where exception can passed as param `it:Throwable?` (Optional)
+ *
+ * @param handleCancellationExceptionManually - does we need to handle cancelation manually
+ */
+suspend fun <T> IAsyncTasksManager.doWithAsyncAwaitBy(
+    tryBlock: SuspendTry<T>,
+    catchBlock: SuspendCatch<T>? = null,
+    finallyBlock: SuspendFinal<T>? = null,
+    handleCancellationExceptionManually: Boolean = false
+): T {
+    return when {
+        catchBlock != null && finallyBlock == null -> doTryCatchWithAsync(tryBlock, catchBlock, handleCancellationExceptionManually)
+        catchBlock != null && finallyBlock != null -> doTryCatchFinallyWithAsync(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually)
+        catchBlock == null && finallyBlock != null -> doTryFinallyWithAsync(tryBlock, finallyBlock)
+        else -> doWithAsync(tryBlock)
+    }
 }
 
 /**

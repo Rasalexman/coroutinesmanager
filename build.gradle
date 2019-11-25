@@ -4,8 +4,9 @@ buildscript {
     ext.kotlin_version = '1.3.60'
     ext.dokka_version = '0.9.17'
     ext.kotlinCoroutinesVersion = '1.3.2'
-    ext.managerCorotinesVersion = "1.2.21"
-    ext.managerCorotinesCode = 10221
+
+    ext.managerCorotinesVersion = "1.2.30"
+    ext.managerCorotinesCode = 10230
     repositories {
         google()
         jcenter()
