@@ -18,38 +18,16 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package com.rasalexman.coroutinesmanager
 
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 
 /**
- * Storage of coroutine providers
+ * Simple CoroutinesManager to use with your regular classes
  */
-object CoroutinesProvider {
-    /**
-     * Main UI Thread Provider
-     */
-    val UI by lazyOf(kotlinx.coroutines.Dispatchers.Main)
-    /**
-     * Common Thread provider
-     */
-    val COMMON by lazyOf(kotlinx.coroutines.Dispatchers.Default)
+open class CoroutinesManager : ICoroutinesManager {
 
     /**
-     * IO Thread provider
+     * current working job for UI coroutine
      */
-    val IO by lazyOf(kotlinx.coroutines.Dispatchers.IO)
-
-    /**
-     * Supervisor job for UI operations
-     */
-    val supervisorJob by lazyOf(SupervisorJob())
-
-    /**
-     * Supervisor job for async operations
-     */
-    val asyncSupervisorJob by lazyOf(SupervisorJob())
-
-    /**
-     * Default cancelation handlers set
-     */
-    val cancelationHandlersSet by lazyOf(mutableSetOf<CancelationHandler>())
+    override val job: Job by lazy { SupervisorJob() }
 }

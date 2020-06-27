@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity(), ICoroutinesManager {
             println("----> ASYNC 'CATCH' BLOCK ${Thread.currentThread().name}")
             titleTextView.text = it.message
         }, finallyBlock = {
-
+            println("----> ASYNC 'FINALLY' BLOCK ${Thread.currentThread().name}")
         })
 
     fun tryCatch() = launchOnUITryCatch(tryBlock = {
