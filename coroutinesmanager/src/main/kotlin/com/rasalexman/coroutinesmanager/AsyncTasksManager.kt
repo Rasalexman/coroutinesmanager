@@ -22,12 +22,17 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 
 /**
- * Simple CoroutinesManager to use with your regular classes
+ * AsyncTasksManager for doing some async work
  */
-open class CoroutinesManager : ICoroutinesManager {
+open class AsyncTasksManager : IAsyncTasksManager {
 
     /**
-     * current working job for UI coroutine
+     * Ccurrent coroutines ASYNC job
      */
-    override val job: Job by lazyOf(SupervisorJob())
+    override val asyncJob: Job by lazy { SupervisorJob() }
+
+    /**
+     * Cancelation handlers local store
+     */
+    override val cancelationHandlers: MutableSet<CancelationHandler> by lazy { mutableSetOf<CancelationHandler>() }
 }
