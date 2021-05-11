@@ -83,16 +83,26 @@ class AsyncWorker(
 
 You can use ICoroutinesManager as base implementation for your presenter in MVP or MVI architecture. Use IAsyncTasksManager as base implementation for hard work or async operations as UseCases and another tasks. 
 
+Build.gradle
+```
+allprojects {
+		repositories {
+			...
+			maven { url 'https://jitpack.io' }
+		}
+	}
+```
+
 Gradle: 
 ```kotlin
-implementation 'com.rasalexman.coroutinesmanager:coroutinesmanager:x.y.z'
+implementation 'com.github.Rasalexman:coroutinesmanager:x.y.z'
 ```
 
 # License
 
 MIT License
 
-Copyright (c) 2019 Alexandr Minkin (sphc@yandex.ru)
+Copyright (c) 2021 Alexandr Minkin (sphc@yandex.ru)
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
