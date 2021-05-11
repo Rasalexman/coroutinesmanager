@@ -2,8 +2,8 @@ package appdependencies
 
 object Builds {
     const val MIN_VERSION = 19
-    const val COMPILE_VERSION = 29
-    const val TARGET_VERSION = 29
+    const val COMPILE_VERSION = 30
+    const val TARGET_VERSION = 30
     const val BUILD_TOOLS = "30.0.2"
     const val APP_ID = "com.mincor.kotlincoroutinesmanager"
 
@@ -13,7 +13,7 @@ object Builds {
     }
 
     object Manager {
-        const val VERSION_NAME = "1.3.0"
+        const val VERSION_NAME = "1.3.1"
     }
 }
 
