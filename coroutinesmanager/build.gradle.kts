@@ -1,14 +1,10 @@
 import appdependencies.Versions
 import appdependencies.Libs
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.jetbrains.dokka.gradle.DokkaTask
 import resources.Resources.codeDirs
 
 plugins {
     id("java-library")
     id("kotlin")
-    id("com.jfrog.bintray")
-    id("org.jetbrains.dokka")
     id("maven-publish")
 }
 
@@ -25,15 +21,6 @@ configurations.all {
     }
 }
 
-tasks.withType<KotlinCompile>().all {
-    kotlinOptions.suppressWarnings = true
-    kotlinOptions.jvmTarget = "1.8"
-    kotlinOptions.noReflect = true
-    kotlinOptions.freeCompilerArgs += listOf(
-            "-XXLanguage:+InlineClasses"
-    )
-}
-
 sourceSets {
     getByName("main") {
         java.setSrcDirs(codeDirs)
@@ -42,22 +29,45 @@ sourceSets {
 
 dependencies {
     implementation(fileTree(mapOf("include" to listOf("*.jar"), "dir" to "libs")))
-    implementation(kotlin("stdlib-jdk8", Versions.kotlin))
+    implementation(kotlin("stdlib", Versions.kotlin))
     api(Libs.Core.kotlinxCoroutinesAndroid)
 }
 
+java {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
-tasks {
-    val dokka by getting(DokkaTask::class) {
-        outputFormat = "html"
-        outputDirectory = "$buildDir/dokka"
-    }
+    withJavadocJar()
+    withSourcesJar()
 }
 
 repositories {
     mavenCentral()
 }
-// comment this apply function if you fork this project
-apply {
-    from("deploy.gradle")
+
+group = "com.rasalexman.coroutinesmanager"
+version = appdependencies.Builds.Manager.VERSION_NAME
+
+
+publishing {
+    publications {
+        create<MavenPublication>("coroutinesmanager") {
+            from(components["kotlin"])
+
+            // You can then customize attributes of the publication as shown below.
+            groupId = "com.rasalexman.coroutinesmanager"
+            artifactId = "coroutinesmanager"
+            version = appdependencies.Builds.Manager.VERSION_NAME
+
+            artifact(tasks["sourcesJar"])
+            artifact(tasks["javadocJar"])
+        }
+    }
+
+    repositories {
+        maven {
+            name = "coroutinesmanager"
+            url = uri("${buildDir}/publishing-repository")
+        }
+    }
 }
