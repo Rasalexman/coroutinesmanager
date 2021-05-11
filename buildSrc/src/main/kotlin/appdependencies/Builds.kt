@@ -13,7 +13,7 @@ object Builds {
     }
 
     object Manager {
-        const val VERSION_NAME = "1.3.1"
+        const val VERSION_NAME = "1.3.2"
     }
 }
 
