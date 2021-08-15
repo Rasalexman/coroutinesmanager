@@ -2,21 +2,25 @@ package com.mincor.kotlincoroutinesmanager
 
 import android.annotation.SuppressLint
 import android.os.Bundle
+import android.widget.Button
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.rasalexman.coroutinesmanager.*
-import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlin.random.Random
 
-class MainActivity : AppCompatActivity(), ICoroutinesManager {
+class MainActivity : AppCompatActivity(R.layout.activity_main), ICoroutinesManager {
+
+    private val titleTextView: TextView get() = findViewById(R.id.titleTextView)
+    private val repeateButton: Button get() = findViewById(R.id.repeateButton)
+    private val flowTitleView: TextView get() = findViewById(R.id.flowTitleView)
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
 
         titleTextView.text = "Click to start coroutines scope"
         repeateButton.setOnClickListener {
@@ -47,6 +51,7 @@ class MainActivity : AppCompatActivity(), ICoroutinesManager {
             println("----> ASYNC 'FINALLY' BLOCK ${Thread.currentThread().name}")
         })
 
+    /*
     fun tryCatch() = launchOnUITryCatch(tryBlock = {
         // do some work on ui
     }, catchBlock = {
@@ -70,8 +75,9 @@ class MainActivity : AppCompatActivity(), ICoroutinesManager {
     override fun onResume() {
         super.onResume()
         //doOnUiOnly()
-    }
+    }*/
 
+    @SuppressLint("SetTextI18n")
     fun doOnUiOnly() = launchOnUI {
         flowTitleView.text = getString(R.string.start_title)
         flow {

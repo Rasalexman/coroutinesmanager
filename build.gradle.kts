@@ -4,7 +4,7 @@ import appdependencies.ClassPath
 buildscript {
     repositories {
         google()
-        jcenter()
+        //jcenter()
         mavenCentral()
         maven { url = uri("https://plugins.gradle.org/m2/") }
 
@@ -14,7 +14,7 @@ buildscript {
         classpath(appdependencies.ClassPath.kotlingradle)
 
         classpath(appdependencies.ClassPath.google)
-        classpath(appdependencies.ClassPath.mavenplugin)
+        //classpath(appdependencies.ClassPath.mavenplugin)
         //classpath(appdependencies.ClassPath.dokkaplugin)
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -24,7 +24,7 @@ buildscript {
 allprojects {
     repositories {
         google()
-        jcenter()
+        //jcenter()
         mavenCentral()
         maven { url = uri("https://www.jitpack.io") }
         maven { url = uri("https://plugins.gradle.org/m2/") }
