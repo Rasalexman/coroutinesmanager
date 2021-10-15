@@ -30,7 +30,7 @@ sourceSets {
 dependencies {
     implementation(fileTree(mapOf("include" to listOf("*.jar"), "dir" to "libs")))
     implementation(kotlin("stdlib-jdk8", Versions.kotlin))
-    implementation(Libs.Core.kotlinxCoroutinesAndroid)
+    api(Libs.Core.kotlinxCoroutinesAndroid)
 }
 
 java {
