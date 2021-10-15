@@ -24,7 +24,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * ICoroutinesManager
  */
-interface ICoroutinesManager : CoroutineScope, IAsyncTasksManager {
+interface ICoroutinesManager : IAsyncTasksManager {
     /**
      * Working job
      *
@@ -59,8 +59,8 @@ interface ICoroutinesManager : CoroutineScope, IAsyncTasksManager {
 fun ICoroutinesManager.launchOnUI(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<Unit>
-) {
-    launch(start = start, block = block).also { job -> job.invokeOnCompletion { job.cancel() } }
+): Job {
+    return launch(start = start, block = block).also { job -> job.invokeOnCompletion { job.cancel() } }
 }
 
 /**
@@ -79,12 +79,13 @@ fun ICoroutinesManager.launchOnUiBy(
     finallyBlock: SuspendFinal<Unit>? = null,
     handleCancellationExceptionManually: Boolean = false,
     start: CoroutineStart = CoroutineStart.DEFAULT
-) {
-    when {
+): Job {
+    return when {
         catchBlock == null && finallyBlock == null -> launchOnUI(start, tryBlock)
         finallyBlock == null && catchBlock != null -> launchOnUITryCatch(tryBlock, catchBlock, handleCancellationExceptionManually, start)
         finallyBlock != null && catchBlock != null -> launchOnUITryCatchFinally(tryBlock, catchBlock, finallyBlock, handleCancellationExceptionManually, start)
         finallyBlock != null && catchBlock == null -> launchOnUITryFinally(tryBlock, finallyBlock, start)
+        else -> launchOnUI(start, tryBlock)
     }
 }
 
@@ -103,12 +104,13 @@ fun ICoroutinesManager.launchOnUiAsyncBy(
     finallyBlock: SuspendFinal<Unit>? = null,
     start: CoroutineStart = CoroutineStart.DEFAULT,
     startAsync: CoroutineStart = CoroutineStart.DEFAULT
-) {
-    when {
+): Job {
+    return when {
         catchBlock == null && finallyBlock == null -> launchOnUIAsyncAwait(start, startAsync, tryBlock)
         finallyBlock == null && catchBlock != null -> launchOnUITryCatchAsyncAwait(start, startAsync, tryBlock, catchBlock)
         finallyBlock != null && catchBlock != null -> launchOnUITryCatchFinallyAsyncAwait(start, startAsync, tryBlock, catchBlock, finallyBlock)
         finallyBlock != null && catchBlock == null -> launchOnUITryFinallyAsyncAwait(start, startAsync, tryBlock, finallyBlock)
+        else -> launchOnUIAsyncAwait(start, startAsync, tryBlock)
     }
 }
 

@@ -16,6 +16,8 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
+@file:Suppress("SuspendFunctionOnCoroutineScope")
+
 package com.rasalexman.coroutinesmanager
 
 import kotlinx.coroutines.*
@@ -24,7 +26,7 @@ import kotlin.coroutines.CoroutineContext
 /**
  * IAsyncTasksManager
  */
-interface IAsyncTasksManager {
+interface IAsyncTasksManager : CoroutineScope {
     /**
      * Async Job
      * You better to override this val in implementing classes,
@@ -42,16 +44,16 @@ interface IAsyncTasksManager {
         get() = CoroutinesProvider.cancelationHandlersSet
 
     /**
-     * CoroutineContext to use in this manager. It's IO
-     */
-    val asyncCoroutineContext: CoroutineContext
-        get() = CoroutinesProvider.IO + asyncJob
-
-    /**
      * CoroutineContext to use in this manager. It's Default
      */
     val defaultCoroutineContext: CoroutineContext
         get() = CoroutinesProvider.COMMON + asyncJob
+
+    /**
+     * CoroutineContext to use in this manager. It's IO
+     */
+    override val coroutineContext: CoroutineContext
+        get() = CoroutinesProvider.IO + asyncJob
 }
 
 /**
@@ -64,13 +66,11 @@ suspend fun <T> IAsyncTasksManager.doAsync(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<T>
 ): Deferred<T> {
-    return coroutineScope {
-        async(
-            asyncCoroutineContext,
+    return async(
+            coroutineContext,
             start,
             block
         ).also { job -> job.invokeOnCompletion { job.cancel() } }
-    }
 }
 
 @Suppress("DeferredIsResult")
@@ -78,13 +78,11 @@ suspend fun <T> IAsyncTasksManager.doDefault(
 start: CoroutineStart = CoroutineStart.DEFAULT,
 block: SuspendTry<T>
 ): Deferred<T> {
-    return coroutineScope {
-        async(
+    return async(
             defaultCoroutineContext,
             start,
             block
         ).also { job -> job.invokeOnCompletion { job.cancel() } }
-    }
 }
 
 /**
@@ -145,7 +143,7 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwaitBy(
 }
 
 /**
- * Do some async work withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ * Do some async work withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.coroutineContext])
  *
  * @param block
  * The worker block to invoke
@@ -153,7 +151,7 @@ suspend fun <T> IAsyncTasksManager.doAsyncAwaitBy(
 suspend fun <T> IAsyncTasksManager.doWithAsync(
     block: SuspendTry<T>
 ): T {
-    return withContext(asyncCoroutineContext, block)
+    return withContext(coroutineContext, block)
 }
 
 /**
@@ -204,7 +202,7 @@ suspend fun <T> IAsyncTasksManager.doTryCatchAsync(
 
 /**
  * Doing some async work with tryCatch block without create new coroutineScope
- * and using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ * and using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.coroutineContext])
  *
  * @param tryBlock      - main working block
  * @param catchBlock    - block where throwable will be handled.
@@ -215,7 +213,7 @@ suspend fun <T> IAsyncTasksManager.doWithTryCatchAsync(
     tryBlock: SuspendTry<T>,
     catchBlock: SuspendCatch<T>,
     handleCancellationExceptionManually: Boolean = false
-): T = withContext(asyncCoroutineContext) {
+): T = withContext(coroutineContext) {
     tryCatch(
         tryBlock = tryBlock,
         catchBlock = catchBlock,
@@ -250,7 +248,7 @@ suspend fun <T> IAsyncTasksManager.doTryCatchFinallyAsync(
 
 /**
  * Doing some async work with tryCatchFinally block without create new coroutineScope
- * and using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ * and using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.coroutineContext])
  *
  * @param tryBlock      - main working block
  * @param catchBlock    - block where throwable will be handled
@@ -263,7 +261,7 @@ suspend fun <T> IAsyncTasksManager.doWithTryCatchFinallyAsync(
     catchBlock: SuspendCatch<T>,
     finallyBlock: SuspendFinal<T>,
     handleCancellationExceptionManually: Boolean = false
-): T = withContext(asyncCoroutineContext) {
+): T = withContext(coroutineContext) {
     tryCatchFinally(
         tryBlock = tryBlock,
         catchBlock = catchBlock,
@@ -304,7 +302,7 @@ suspend fun <T> IAsyncTasksManager.doTryFinallyAsync(
 suspend fun <T> IAsyncTasksManager.doWithTryFinallyAsync(
     tryBlock: SuspendTry<T>,
     finallyBlock: SuspendFinal<T>
-): T = withContext(asyncCoroutineContext) {
+): T = withContext(coroutineContext) {
     tryFinally(
         tryBlock = tryBlock,
         finallyBlock = finallyBlock
@@ -383,7 +381,7 @@ suspend fun <T> IAsyncTasksManager.doTryFinallyAsyncAwait(
  */
 @Synchronized
 fun IAsyncTasksManager.cancelAllAsync() {
-    asyncCoroutineContext.cancelChildren()
+    coroutineContext.cancelChildren()
     cancelationHandlers?.forEach { it() }
 }
 
@@ -392,7 +390,7 @@ fun IAsyncTasksManager.cancelAllAsync() {
  */
 @Synchronized
 fun IAsyncTasksManager.cleanup() {
-    asyncCoroutineContext.cancelChildren()
+    coroutineContext.cancelChildren()
     cancelationHandlers?.clear()
 }
 

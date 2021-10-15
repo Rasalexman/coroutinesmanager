@@ -34,5 +34,5 @@ open class AsyncTasksManager : IAsyncTasksManager {
     /**
      * Cancelation handlers local store
      */
-    override val cancelationHandlers: MutableSet<CancelationHandler> by lazy { mutableSetOf<CancelationHandler>() }
+    override val cancelationHandlers: MutableSet<CancelationHandler> by lazy { mutableSetOf() }
 }
