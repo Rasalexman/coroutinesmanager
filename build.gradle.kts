@@ -13,7 +13,7 @@ buildscript {
         classpath(appdependencies.ClassPath.gradle)
         classpath(appdependencies.ClassPath.kotlingradle)
 
-        classpath(appdependencies.ClassPath.google)
+        //classpath(appdependencies.ClassPath.google)
         //classpath(appdependencies.ClassPath.mavenplugin)
         //classpath(appdependencies.ClassPath.dokkaplugin)
         // NOTE: Do not place your application dependencies here; they belong
@@ -26,7 +26,7 @@ allprojects {
         google()
         //jcenter()
         mavenCentral()
-        maven { url = uri("https://www.jitpack.io") }
+        //maven { url = uri("https://www.jitpack.io") }
         maven { url = uri("https://plugins.gradle.org/m2/") }
     }
 }
