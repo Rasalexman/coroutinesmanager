@@ -47,13 +47,13 @@ interface IAsyncTasksManager : CoroutineScope {
      * CoroutineContext to use in this manager. It's Default
      */
     val defaultCoroutineContext: CoroutineContext
-        get() = CoroutinesProvider.COMMON
+        get() = CoroutinesProvider.COMMON + CoroutinesProvider.commonSupervisorJob
 
     /**
      * CoroutineContext to use in this manager. It's IO
      */
     override val coroutineContext: CoroutineContext
-        get() = CoroutinesProvider.IO
+        get() = CoroutinesProvider.IO + asyncJob
 }
 
 /**

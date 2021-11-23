@@ -35,7 +35,7 @@ open class AsyncTasksManager : IAsyncTasksManager {
     /**
      * Current IO coroutines context
      */
-    override val coroutineContext: CoroutineContext by lazy { kotlinx.coroutines.Dispatchers.IO + asyncJob }
+    override val coroutineContext: CoroutineContext by lazy { CoroutinesProvider.IO + asyncJob }
 
     /**
      * Cancelation handlers local store

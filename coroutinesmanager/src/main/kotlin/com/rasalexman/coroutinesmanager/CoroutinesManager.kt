@@ -35,5 +35,5 @@ open class CoroutinesManager : ICoroutinesManager {
     /**
      * Current working Main context
      */
-    override val coroutineContext: CoroutineContext by lazy { kotlinx.coroutines.Dispatchers.Main + job }
+    override val coroutineContext: CoroutineContext by lazy { CoroutinesProvider.UI + job }
 }

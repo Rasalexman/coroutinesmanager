@@ -47,7 +47,7 @@ interface ICoroutinesManager : IAsyncTasksManager {
      * launch single coroutine job on main thread
      */
     override val coroutineContext: CoroutineContext
-        get() = CoroutinesProvider.UI
+        get() = CoroutinesProvider.UI + job
 }
 
 /**

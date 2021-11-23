@@ -50,16 +50,16 @@ object CoroutinesProvider {
     /**
      * Main UI Thread Provider
      */
-    val UI by lazy { kotlinx.coroutines.Dispatchers.Main + supervisorJob}
+    val UI by lazy { kotlinx.coroutines.Dispatchers.Main }
     /**
      * Common Thread provider
      */
-    val COMMON by lazy { kotlinx.coroutines.Dispatchers.Default + commonSupervisorJob }
+    val COMMON by lazy { kotlinx.coroutines.Dispatchers.Default }
 
     /**
      * IO Thread provider
      */
-    val IO by lazy { kotlinx.coroutines.Dispatchers.IO + asyncSupervisorJob }
+    val IO by lazy { kotlinx.coroutines.Dispatchers.IO }
 
 
 }
