@@ -47,7 +47,7 @@ interface ICoroutinesManager : IAsyncTasksManager {
      * launch single coroutine job on main thread
      */
     override val coroutineContext: CoroutineContext
-        get() = CoroutinesProvider.UI + job
+        get() = CoroutinesProvider.UI
 }
 
 /**
@@ -60,7 +60,7 @@ fun ICoroutinesManager.launchOnUI(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<Unit>
 ): Job {
-    return launch(start = start, block = block).also { job -> job.invokeOnCompletion { job.cancel() } }
+    return launch(start = start, block = block)//.also { job -> job.invokeOnCompletion { job.cancel() } }
 }
 
 /**

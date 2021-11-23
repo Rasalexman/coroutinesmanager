@@ -20,6 +20,7 @@ package com.rasalexman.coroutinesmanager
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlin.coroutines.CoroutineContext
 
 /**
  * AsyncTasksManager for doing some async work
@@ -30,6 +31,11 @@ open class AsyncTasksManager : IAsyncTasksManager {
      * Ccurrent coroutines ASYNC job
      */
     override val asyncJob: Job by lazy { SupervisorJob() }
+
+    /**
+     * Current IO coroutines context
+     */
+    override val coroutineContext: CoroutineContext by lazy { kotlinx.coroutines.Dispatchers.IO + asyncJob }
 
     /**
      * Cancelation handlers local store

@@ -20,6 +20,7 @@ package com.rasalexman.coroutinesmanager
 
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlin.coroutines.CoroutineContext
 
 /**
  * Simple CoroutinesManager to use with your regular classes
@@ -30,4 +31,9 @@ open class CoroutinesManager : ICoroutinesManager {
      * current working job for UI coroutine
      */
     override val job: Job by lazy { SupervisorJob() }
+
+    /**
+     * Current working Main context
+     */
+    override val coroutineContext: CoroutineContext by lazy { kotlinx.coroutines.Dispatchers.Main + job }
 }

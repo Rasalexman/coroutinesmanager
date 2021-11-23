@@ -24,24 +24,18 @@ import kotlinx.coroutines.SupervisorJob
  * Storage of coroutine providers
  */
 object CoroutinesProvider {
-    /**
-     * Main UI Thread Provider
-     */
-    val UI by lazy { kotlinx.coroutines.Dispatchers.Main }
-    /**
-     * Common Thread provider
-     */
-    val COMMON by lazy { kotlinx.coroutines.Dispatchers.Default }
 
-    /**
-     * IO Thread provider
-     */
-    val IO by lazy { kotlinx.coroutines.Dispatchers.IO }
+
 
     /**
      * Supervisor job for UI operations
      */
     val supervisorJob by lazy { SupervisorJob() }
+
+    /**
+     * Supervisor job for Common operations
+     */
+    val commonSupervisorJob by lazy { SupervisorJob() }
 
     /**
      * Supervisor job for async operations
@@ -52,4 +46,20 @@ object CoroutinesProvider {
      * Default cancelation handlers set
      */
     val cancelationHandlersSet by lazy { mutableSetOf<CancelationHandler>() }
+
+    /**
+     * Main UI Thread Provider
+     */
+    val UI by lazy { kotlinx.coroutines.Dispatchers.Main + supervisorJob}
+    /**
+     * Common Thread provider
+     */
+    val COMMON by lazy { kotlinx.coroutines.Dispatchers.Default + commonSupervisorJob }
+
+    /**
+     * IO Thread provider
+     */
+    val IO by lazy { kotlinx.coroutines.Dispatchers.IO + asyncSupervisorJob }
+
+
 }

@@ -47,13 +47,13 @@ interface IAsyncTasksManager : CoroutineScope {
      * CoroutineContext to use in this manager. It's Default
      */
     val defaultCoroutineContext: CoroutineContext
-        get() = CoroutinesProvider.COMMON + asyncJob
+        get() = CoroutinesProvider.COMMON
 
     /**
      * CoroutineContext to use in this manager. It's IO
      */
     override val coroutineContext: CoroutineContext
-        get() = CoroutinesProvider.IO + asyncJob
+        get() = CoroutinesProvider.IO
 }
 
 /**
@@ -62,7 +62,7 @@ interface IAsyncTasksManager : CoroutineScope {
  * @param start - starting coroutine strategy [CoroutineStart]
  * @param block - The worker block to invoke
  */
-suspend fun <T> IAsyncTasksManager.doAsync(
+fun <T> IAsyncTasksManager.doAsync(
     start: CoroutineStart = CoroutineStart.DEFAULT,
     block: SuspendTry<T>
 ): Deferred<T> {
@@ -70,11 +70,11 @@ suspend fun <T> IAsyncTasksManager.doAsync(
             coroutineContext,
             start,
             block
-        ).also { job -> job.invokeOnCompletion { job.cancel() } }
+        )//.also { job -> job.invokeOnCompletion { job.cancel() } }
 }
 
 @Suppress("DeferredIsResult")
-suspend fun <T> IAsyncTasksManager.doDefault(
+fun <T> IAsyncTasksManager.doDefault(
 start: CoroutineStart = CoroutineStart.DEFAULT,
 block: SuspendTry<T>
 ): Deferred<T> {
@@ -82,7 +82,7 @@ block: SuspendTry<T>
             defaultCoroutineContext,
             start,
             block
-        ).also { job -> job.invokeOnCompletion { job.cancel() } }
+        )//.also { job -> job.invokeOnCompletion { job.cancel() } }
 }
 
 /**
