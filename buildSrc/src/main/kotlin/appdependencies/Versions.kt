@@ -2,13 +2,13 @@ package appdependencies
 
 object Versions {
 
-    const val gradle = "7.0.3"
-    const val kotlin = "1.6.0"
+    const val gradle = "7.0.4"
+    const val kotlin = "1.6.10"
 
     const val appcompat = "1.3.1"
     const val appCoreX = "1.6.0"
     const val constraintLayout = "2.1.0"
-    const val kotlinCoroutinesVersion = "1.6.0-RC"
+    const val kotlinCoroutinesVersion = "1.6.0"
 
     /* test */
     const val junit = "4.13"

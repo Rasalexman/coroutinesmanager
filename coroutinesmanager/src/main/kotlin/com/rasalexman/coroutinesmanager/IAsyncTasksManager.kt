@@ -16,7 +16,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-@file:Suppress("SuspendFunctionOnCoroutineScope")
+@file:Suppress("SuspendFunctionOnCoroutineScope", "unused")
 
 package com.rasalexman.coroutinesmanager
 
@@ -293,7 +293,7 @@ suspend fun <T> IAsyncTasksManager.doTryFinallyAsync(
 /**
  * Doing some async work with tryFinally block. If there is an error occurs
  * It will be throwed and passed into [finallyBlock] as parameter
- * using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.asyncCoroutineContext])
+ * using withContext([com.rasalexman.coroutinesmanager.IAsyncTasksManager.coroutineContext])
  *
  * @param tryBlock      - main working block
  * @param finallyBlock  - there is a block where exception can exist as param `it:Throwable?`
