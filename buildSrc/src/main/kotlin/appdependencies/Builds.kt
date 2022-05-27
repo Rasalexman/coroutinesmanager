@@ -4,7 +4,7 @@ object Builds {
     const val MIN_VERSION = 19
     const val COMPILE_VERSION = 31
     const val TARGET_VERSION = 31
-    const val BUILD_TOOLS = "30.0.3"
+    const val BUILD_TOOLS = "31.0.0"
     const val APP_ID = "com.mincor.kotlincoroutinesmanager"
 
     object App {
@@ -13,7 +13,7 @@ object Builds {
     }
 
     object Manager {
-        const val VERSION_NAME = "1.4.0"
+        const val VERSION_NAME = "1.4.1"
     }
 }
 
