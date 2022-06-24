@@ -18,6 +18,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 
 package com.rasalexman.coroutinesmanager
 
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.SupervisorJob
 
 /**
@@ -25,7 +26,9 @@ import kotlinx.coroutines.SupervisorJob
  */
 object CoroutinesProvider {
 
-
+    private var _ioDispatcher: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.IO
+    private var _commonDispatcher: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.Default
+    private var _mainDispatcher: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.Main
 
     /**
      * Supervisor job for UI operations
@@ -50,16 +53,31 @@ object CoroutinesProvider {
     /**
      * Main UI Thread Provider
      */
-    val UI by lazy { kotlinx.coroutines.Dispatchers.Main }
+    val UI: CoroutineDispatcher
+        get() = _mainDispatcher
     /**
      * Common Thread provider
      */
-    val COMMON by lazy { kotlinx.coroutines.Dispatchers.Default }
+    val COMMON: CoroutineDispatcher
+        get() = _commonDispatcher
 
     /**
      * IO Thread provider
      */
-    val IO by lazy { kotlinx.coroutines.Dispatchers.IO }
+    val IO: CoroutineDispatcher
+        get() = _ioDispatcher
 
+    /**
+     * Setup default manager dispatchers
+     */
+    fun setupDefaultDispatchers(
+        ioDispatcher: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.IO,
+        commonDispatcher: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.Default,
+        mainDispatcher: CoroutineDispatcher = kotlinx.coroutines.Dispatchers.Main
+        ) {
+        _ioDispatcher = ioDispatcher
+        _commonDispatcher = commonDispatcher
+        _mainDispatcher = mainDispatcher
+    }
 
 }

@@ -6,7 +6,7 @@ object Versions {
     const val kotlin = "1.6.21"
 
     const val appcompat = "1.3.1"
-    const val appCoreX = "1.8.0-rc02"
+    const val appCoreX = "1.8.0"
     const val constraintLayout = "2.1.4"
     const val kotlinCoroutinesVersion = "1.6.1"
 
