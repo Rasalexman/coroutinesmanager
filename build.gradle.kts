@@ -1,33 +1,48 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-import appdependencies.ClassPath
 
 buildscript {
+    apply(from="versions.gradle.kts")
+    val kotlinVersion: String by extra
+    val agpVersion: String by extra
+    val jitpackPath: String by extra
+    val pluginsPath: String by extra
+
     repositories {
         google()
-        //jcenter()
         mavenCentral()
-        maven { url = uri("https://plugins.gradle.org/m2/") }
-
+        gradlePluginPortal()
+        maven { url = uri(jitpackPath) }
+        maven { url = uri(pluginsPath) }
     }
     dependencies {
-        classpath(appdependencies.ClassPath.gradle)
-        classpath(appdependencies.ClassPath.kotlingradle)
+        classpath("com.android.tools.build:gradle:$agpVersion")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
 
-        //classpath(appdependencies.ClassPath.google)
-        //classpath(appdependencies.ClassPath.mavenplugin)
-        //classpath(appdependencies.ClassPath.dokkaplugin)
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
 }
 
 allprojects {
-    repositories {
-        google()
-        //jcenter()
-        mavenCentral()
-        //maven { url = uri("https://www.jitpack.io") }
-        maven { url = uri("https://plugins.gradle.org/m2/") }
+    apply(from="${rootDir}/versions.gradle.kts")
+    val kotlinApiVersion: String by extra
+    val jvmVersion: String by extra
+
+    tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+        kotlinOptions {
+            this.apiVersion = kotlinApiVersion
+            this.languageVersion = kotlinApiVersion
+            this.jvmTarget = jvmVersion
+            this.freeCompilerArgs += listOf(
+                "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi",
+                "-opt-in=kotlin.RequiresOptIn"
+            )
+        }
+    }
+
+    tasks.withType<JavaCompile>().configureEach {
+        sourceCompatibility = jvmVersion
+        targetCompatibility = jvmVersion
     }
 }
 

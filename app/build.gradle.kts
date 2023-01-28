@@ -1,10 +1,3 @@
-import appdependencies.Builds.APP_ID
-import appdependencies.Builds.BUILD_TOOLS
-import appdependencies.Builds.COMPILE_VERSION
-import appdependencies.Builds.MIN_VERSION
-import appdependencies.Builds.TARGET_VERSION
-import appdependencies.Libs
-import appdependencies.Versions
 import com.android.build.gradle.internal.api.BaseVariantOutputImpl
 
 plugins {
@@ -13,15 +6,20 @@ plugins {
 }
 
 android {
-    compileSdk = (COMPILE_VERSION)
-    buildToolsVersion = BUILD_TOOLS
+    val buildSdkVersion: Int by extra
+    val minSdkVersion: Int by extra
+    val appVersion: String by extra
+    val appId: String by extra
+    val codePath: String by rootProject.extra
+
+    compileSdk = buildSdkVersion
     defaultConfig {
-        applicationId = APP_ID
-        minSdk = (MIN_VERSION)
-        targetSdk = (TARGET_VERSION)
-        //versionCode = appdependencies.Builds.App.VERSION_CODE
-        //versionName = appdependencies.Builds.App.VERSION_NAME
+        applicationId = appId
+        minSdk = minSdkVersion
+        targetSdk = buildSdkVersion
+        version = appVersion
         testInstrumentationRunner = "android.support.test.runner.AndroidJUnitRunner"
+        multiDexEnabled = true
     }
     buildTypes {
         getByName("debug") {
@@ -73,16 +71,21 @@ android {
 
 dependencies {
     implementation(fileTree(mapOf("include" to listOf("*.jar"), "dir" to "libs")))
+    implementation("androidx.core:core-ktx:+")
     //implementation(kotlin("stdlib-jdk8", Versions.kotlin))
 
-    implementation(Libs.Core.appcompat)
-    implementation(Libs.Core.coreKtx)
-    implementation(Libs.Core.constraintlayout)
+    val settings = rootProject.extra
+    val coreKtx: String by settings
+    val appcompat: String by settings
+    val constraintlayout: String by settings
+
+    implementation(appcompat)
+    implementation(coreKtx)
+    implementation(constraintlayout)
 
     implementation(project(":coroutinesmanager"))
 
-    //testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.3.2")
-    testImplementation(Libs.Tests.junit)
-    androidTestImplementation(Libs.Tests.runner)
-    androidTestImplementation(Libs.Tests.espresso)
+    testImplementation("junit:junit:4.13.2")
+    androidTestImplementation("androidx.test:runner:1.5.2")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
 }

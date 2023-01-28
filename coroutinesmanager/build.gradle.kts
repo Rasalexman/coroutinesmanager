@@ -1,11 +1,11 @@
-import appdependencies.Libs
-import resources.Resources.codeDirs
-
 plugins {
     id("java-library")
     id("kotlin")
     id("maven-publish")
 }
+
+val versionName: String by rootProject.extra
+val codePath: String by rootProject.extra
 
 // Declare the task that will monitor all configurations.
 configurations.all {
@@ -22,14 +22,15 @@ configurations.all {
 
 sourceSets {
     getByName("main") {
-        java.setSrcDirs(codeDirs)
+        java.setSrcDirs(listOf(codePath))
     }
 }
 
 dependencies {
     implementation(fileTree(mapOf("include" to listOf("*.jar"), "dir" to "libs")))
-    //implementation(kotlin("stdlib-jdk8", Versions.kotlin))
-    api(Libs.Core.kotlinxCoroutinesAndroid)
+    val settings = rootProject.extra
+    val coroutines: String by settings
+    api(coroutines)
 }
 
 java {
@@ -40,12 +41,8 @@ java {
     withSourcesJar()
 }
 
-repositories {
-    mavenCentral()
-}
-
 group = "com.rasalexman.coroutinesmanager"
-version = appdependencies.Builds.Manager.VERSION_NAME
+version = versionName
 
 
 publishing {
@@ -56,7 +53,7 @@ publishing {
             // You can then customize attributes of the publication as shown below.
             groupId = "com.rasalexman.coroutinesmanager"
             artifactId = "coroutinesmanager"
-            version = appdependencies.Builds.Manager.VERSION_NAME
+            version = versionName
 
             artifact(tasks["sourcesJar"])
             artifact(tasks["javadocJar"])
