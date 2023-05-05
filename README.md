@@ -1,5 +1,5 @@
 # Kotlin Coroutines Manager
-[![Kotlin 1.8.0](https://img.shields.io/badge/Kotlin-1.8.0-blue.svg)](http://kotlinlang.org) [![](https://jitpack.io/v/Rasalexman/coroutinesmanager.svg)](https://jitpack.io/#Rasalexman/coroutinesmanager) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/12165b84f5e14ade83ebbf508cf17cbc)](https://app.codacy.com/app/Rasalexman/coroutinesmanager?utm_source=github.com&utm_medium=referral&utm_content=Rasalexman/coroutinesmanager&utm_campaign=Badge_Grade_Dashboard) [![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
+[![Kotlin 1.8.21](https://img.shields.io/badge/Kotlin-1.8.21-blue.svg)](http://kotlinlang.org) [![](https://jitpack.io/v/Rasalexman/coroutinesmanager.svg)](https://jitpack.io/#Rasalexman/coroutinesmanager) [![Codacy Badge](https://api.codacy.com/project/badge/Grade/12165b84f5e14ade83ebbf508cf17cbc)](https://app.codacy.com/app/Rasalexman/coroutinesmanager?utm_source=github.com&utm_medium=referral&utm_content=Rasalexman/coroutinesmanager&utm_campaign=Badge_Grade_Dashboard) [![Awesome Kotlin Badge](https://kotlin.link/awesome-kotlin.svg)](https://github.com/KotlinBy/awesome-kotlin)
 
 Some helpful kotlin coroutines manager classes and extensions. You can turn every function into coroutine function with powerful try-catch-finally blocks
 

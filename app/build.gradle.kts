@@ -71,7 +71,7 @@ android {
 
 dependencies {
     implementation(fileTree(mapOf("include" to listOf("*.jar"), "dir" to "libs")))
-    implementation("androidx.core:core-ktx:+")
+    //implementation("androidx.core:core-ktx:+")
     //implementation(kotlin("stdlib-jdk8", Versions.kotlin))
 
     val settings = rootProject.extra
